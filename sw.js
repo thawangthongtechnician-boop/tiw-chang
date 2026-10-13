@@ -1,5 +1,5 @@
 // sw.js : ระบบออฟไลน์ (เปลี่ยนเลข CACHE ทุกครั้งที่แก้ไฟล์ในแอป)
-const CACHE = 'tiw-v4-0-0';
+const CACHE = 'tiw-v4-0-1';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', function (e) {
