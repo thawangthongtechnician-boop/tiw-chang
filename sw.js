@@ -1,5 +1,5 @@
 // sw.js : ระบบออฟไลน์ (เปลี่ยนเลข CACHE ทุกครั้งที่แก้ไฟล์ในแอป)
-const CACHE = 'tiw-v2-0-0';
+const CACHE = 'tiw-v3-0-0';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', function (e) {
@@ -16,13 +16,11 @@ self.addEventListener('activate', function (e) {
   );
 });
 
-// ไฟล์ของแอป: ลองโหลดจากเน็ตก่อน ถ้าช้าเกิน 4 วินาทีหรือออฟไลน์ ใช้ของที่เก็บไว้
 self.addEventListener('fetch', function (e) {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; // ไม่ยุ่งกับ Google / Apps Script
-
+  if (url.origin !== self.location.origin) return;
   e.respondWith(new Promise(function (resolve) {
     let done = false;
     function finish(res) { if (!done && res) { done = true; resolve(res); } }
