@@ -204,10 +204,19 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 <div id="toast"></div>
 
 <script>
+window.addEventListener('error', function (e) {
+  try {
+    const m = document.getElementById('main');
+    if (m && !String(m.innerHTML).trim()) {
+      const t = String((e && e.message) || 'ไม่ทราบสาเหตุ').replace(/[<>&]/g, '');
+      m.innerHTML = '<section class="card"><h2>แอปเกิดข้อผิดพลาด</h2><p class="muted">' + t + '</p><p class="small muted">ลองรีเฟรชหน้า หรือล้างแคชของเว็บไซต์นี้</p></section>';
+    }
+  } catch (x) { /* ไม่เป็นไร */ }
+});
 (function () {
   'use strict';
 
-  const APP_VERSION = '4.0.0';
+  const APP_VERSION = '4.0.1';
   const NL = String.fromCharCode(10);
   const K_CFG = 'tiw_cfg';
   const K_DATA = 'tiw_data';
@@ -236,7 +245,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     syncing: false, online: navigator.onLine, installEvt: null,
     examTab: 'start', ses: loadJSON(K_SES, null), res: null, gridOpen: false,
     aiTab: 'chat', chatBusy: false, chatDraft: '', listening: false, voiceAsked: false,
-    genBusy: false, genMsg: '', genResult: null, procBusy: false, procMsg: '' };
+    genBusy: false, genMsg: '', genResult: null, procBusy: false, procMsg: '', lastErr: '' };
   if (state.ses && (!Array.isArray(state.ses.qs) || !state.ses.qs.length)) state.ses = null;
   const player = { queue: [], key: '', idx: 0, chunkIdx: 0, playing: false, done: false, token: 0, timer: null, utter: null };
   let wakeLock = null;
@@ -295,7 +304,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3500);
   }
   function isIOS() {
-    const ua = navigator.userAgent;
+    const ua = navigator.userAgent || '';
     return ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1 ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
@@ -445,29 +454,53 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       .sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : 1; });
   }
 
+  function mkErr(code, msg) { const e = new Error(msg); e.code = code; return e; }
+
+  function explainBadReply(text) {
+    const t = String(text || '');
+    if (/accounts\.google\.com|ServiceLogin|Sign in/i.test(t))
+      return 'Google ส่งหน้าเข้าสู่ระบบกลับมา: ตอน Deploy ต้องตั้ง "ผู้มีสิทธิ์เข้าถึง = ทุกคน (Anyone)"';
+    if (/doPost/i.test(t) && /not found|ไม่พบ/i.test(t))
+      return 'สคริปต์ยังไม่มีฟังก์ชัน doPost (หรือยังไม่ได้ Deploy เวอร์ชันใหม่)';
+    if (/doGet/i.test(t) && /not found|ไม่พบ/i.test(t))
+      return 'สคริปต์ไม่มี doGet (หรือยังไม่ได้ Deploy เวอร์ชันใหม่)';
+    if (/Page Not Found|ไม่พบหน้า|Sorry, unable to open the file/i.test(t))
+      return 'ไม่พบสคริปต์ที่ลิงก์นี้: ตรวจลิงก์ /exec ให้ตรงกับ Deployment ล่าสุด';
+    const plain = t.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return 'เซิร์ฟเวอร์ตอบกลับไม่ใช่ข้อมูล JSON' + (plain ? ' (' + plain.slice(0, 120) + ')' : '');
+  }
+
   function api(action, extra, timeoutMs) {
+    if (!cfg.apiUrl) return Promise.reject(mkErr('NO_URL', 'ยังไม่ได้ตั้งลิงก์ Web App'));
     const body = Object.assign({ action: action, pin: cfg.pin }, extra || {});
     const ctrl = window.AbortController ? new AbortController() : null;
-    const timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, timeoutMs || 45000);
-    return fetch(cfg.apiUrl, {
-      method: 'POST', redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined
-    }).then(function (r) { return r.json(); })
-      .catch(function (err) {
+    const ms = timeoutMs || 30000;
+    return new Promise(function (resolve, reject) {
+      const timer = setTimeout(function () {
+        if (ctrl) { try { ctrl.abort(); } catch (e) { /* ไม่เป็นไร */ } }
+        reject(mkErr('TIMEOUT', 'เซิร์ฟเวอร์ตอบช้าเกิน ' + Math.round(ms / 1000) + ' วินาที ลองใหม่อีกครั้ง'));
+      }, ms);
+      fetch(cfg.apiUrl, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined
+      }).then(function (r) {
+        return r.text().then(function (t) { return { ok: r.ok, status: r.status, text: t }; });
+      }).then(function (x) {
         clearTimeout(timer);
-        if (err && err.name === 'AbortError') throw new Error('เซิร์ฟเวอร์ตอบช้าเกินไป ลองใหม่อีกครั้ง');
-        throw new Error('เชื่อมต่อไม่ได้ ตรวจอินเทอร์เน็ต ลิงก์ Web App และการ Deploy แบบ "ทุกคน"');
-      })
-      .then(function (res) {
+        resolve(x);
+      }, function () {
         clearTimeout(timer);
-        if (!res || !res.ok) {
-          const e = new Error((res && res.error) || 'เกิดข้อผิดพลาด');
-          e.code = res && res.code;
-          throw e;
-        }
-        return res.data;
+        reject(mkErr('NETWORK', 'เชื่อมต่อไม่ได้ ตรวจอินเทอร์เน็ต / ลิงก์ Web App (ต้องลงท้าย /exec) / การ Deploy ต้องเป็น "ทุกคน"'));
       });
+    }).then(function (x) {
+      let res;
+      try { res = JSON.parse(x.text); } catch (e) { throw mkErr('NOT_JSON', explainBadReply(x.text)); }
+      if (!res || !res.ok) {
+        throw mkErr(res && res.code, (res && res.error) || ('เกิดข้อผิดพลาด (HTTP ' + x.status + ')'));
+      }
+      return res.data;
+    });
   }
 
   function sendFlags() {
@@ -503,6 +536,8 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     return syncPromise;
   }
 
+  function isNetErr(err) { return err && (err.code === 'NETWORK' || err.code === 'TIMEOUT'); }
+
   function refresh(silent) {
     if (!cfg.apiUrl || !cfg.pin) return Promise.resolve();
     if (!navigator.onLine) {
@@ -511,16 +546,22 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     }
     if (state.syncing) return Promise.resolve();
     state.syncing = true;
+    state.lastErr = '';
     renderHeader();
-    return syncAll().catch(function () { /* ส่งรอบหน้า */ }).then(function () {
-      return api('bootstrap');
+    if (!data) render();   // ให้เห็นสถานะ "กำลังโหลด" ตอนยังไม่มีข้อมูล
+    // ดึงข้อมูลก่อน (สำคัญสุด) ส่งผลสอบค้างค่อยตามหลัง จะได้ไม่ติดคิวช้า
+    return api('bootstrap', null, 25000).catch(function (err) {
+      if (isNetErr(err)) return api('bootstrap', null, 25000);   // ลองซ้ำ 1 ครั้ง
+      throw err;
     }).then(function (d) {
       d.savedAt = new Date().toISOString();
       data = d;
       saveJSON(K_DATA, d);
       applyServerSettings();
+      state.lastErr = '';
       if (!silent) toast('อัปเดตข้อมูลแล้ว ✅');
     }).catch(function (err) {
+      state.lastErr = err.message || 'ดึงข้อมูลไม่สำเร็จ';
       if (err.code === 'AUTH' || err.code === 'NO_PIN' || err.code === 'LOCKED') toast(err.message + ' (แก้ได้ที่ ⚙️)');
       else if (!silent || !data) toast(err.message);
     }).then(function () {
@@ -528,6 +569,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       const ae = document.activeElement;
       const typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT' || ae.tagName === 'TEXTAREA');
       if (typing || state.listening) { renderHeader(); renderTabs(); } else render();
+      if (!state.lastErr) syncAll().catch(function () { /* ส่งรอบหน้า */ });
     });
   }
 
@@ -1120,6 +1162,17 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     next();
   }
 
+  // รหัสข้อผิดพลาดที่ควรหยุดประมวลผลเอกสารทั้งชุด (ไม่ต้องลองไฟล์ถัดไป)
+  const AI_STOP = ['AUTH', 'NO_PIN', 'LOCKED', 'NO_KEY', 'QUOTA'];
+
+  function topicCard(t) {
+    const nd = docsOf(t.id).length, ns = sumsOf(t.id).length, nq = qsOf(t.id).length;
+    return '<button class="tcard" data-act="openTopic" data-id="' + esc(t.id) + '">' +
+      '<div class="tname">' + esc(t.name || '(ไม่มีชื่อ)') + '</div>' +
+      (t.description ? '<div class="tdesc">' + esc(shortText(t.description, 90)) + '</div>' : '') +
+      '<div class="tmeta"><span>📄 ' + nd + ' เอกสาร</span><span>🎧 ' + ns + ' สรุป</span><span>✏️ ' + nq + ' ข้อ</span></div></button>';
+  }
+
   const TABS = [
     ['home', '🏠', 'หน้าหลัก'], ['learn', '📚', 'คลังความรู้'], ['listen', '🎧', 'ฟัง'],
     ['exam', '📝', 'ข้อสอบ'], ['chat', '💬', 'ถาม AI']
@@ -1128,6 +1181,9 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   function renderHeader() {
     const h = byId('topbar');
     let right = state.online ? '' : '<span class="pill">ออฟไลน์</span>';
+    if (isReady() && state.lastErr && !state.syncing) {
+      right += '<button class="pill" data-act="sync" title="' + esc(state.lastErr) + '">⚠ ดึงข้อมูลไม่สำเร็จ แตะเพื่อลองใหม่</button>';
+    }
     if (isReady()) {
       right += '<button class="icon-btn' + (state.syncing ? ' spin' : '') + '" data-act="sync" aria-label="อัปเดตข้อมูล"><span>⟳</span></button>';
       right += '<button class="icon-btn" data-act="go" data-id="settings" aria-label="ตั้งค่า">⚙️</button>';
@@ -1176,16 +1232,104 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     renderMini();
   }
 
+  // ===== ฟังก์ชันช่วยแสดงผลที่ไฟล์เดิมเรียกใช้แต่ไม่เคยประกาศไว้ =====
+  function connFields() {
+    return '<label class="field"><span>ลิงก์ Web App (ลงท้าย /exec)</span>' +
+      '<input id="fUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" ' +
+      'placeholder="https://script.google.com/macros/s/.../exec" value="' + esc(cfg.apiUrl || '') + '"></label>' +
+      '<label class="field"><span>PIN</span>' +
+      '<input id="fPin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN ที่ตั้งไว้ใน Google Sheet" value="' + esc(cfg.pin || '') + '"></label>' +
+      '<div id="fMsg" class="msg"></div>';
+  }
+
+  function selectField(label, key, options, cur) {
+    return '<label class="field"><span>' + esc(label) + '</span><select data-change="' + esc(key) + '">' +
+      options.map(function (o) {
+        return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+      }).join('') + '</select></label>';
+  }
+
+  function modeBtn(id, title, desc) {
+    const t = title.split(' ');
+    const icon = t.shift();
+    return '<button class="mode' + (cfg.exMode === id ? ' on' : '') + '" data-act="exMode" data-id="' + id + '">' +
+      '<b>' + icon + ' ' + esc(t.join(' ')) + '</b><span>' + esc(desc) + '</span></button>';
+  }
+
+  function docIcon(type) {
+    const t = String(type || '').toLowerCase();
+    if (t.indexOf('pdf') > -1) return '📕';
+    if (t.indexOf('doc') > -1 || t.indexOf('word') > -1) return '📘';
+    if (t.indexOf('sheet') > -1 || t.indexOf('xls') > -1 || t.indexOf('csv') > -1) return '📊';
+    if (t.indexOf('ppt') > -1 || t.indexOf('slide') > -1 || t.indexOf('สไลด์') > -1) return '📙';
+    if (t.indexOf('image') > -1 || t.indexOf('jpg') > -1 || t.indexOf('png') > -1 || t.indexOf('รูป') > -1) return '🖼️';
+    return '📄';
+  }
+
+  function statusBadge(st) {
+    const v = String(st || '');
+    if (!v) return '';
+    const cls = v === 'ประมวลผลแล้ว' ? 'ok' : (v === 'ผิดพลาด' ? 'bad' : 'wait');
+    return '<span class="badge ' + cls + '">' + esc(v) + '</span>';
+  }
+
+  function sumList(items, open) {
+    if (!items.length) return '';
+    return '<details class="sums"' + (open ? ' open' : '') + '><summary>สรุป (' + items.length + ')</summary><ul class="slist">' +
+      items.map(function (x) {
+        return '<li><button class="icon-btn sm" data-act="speakOne" data-id="' + esc(x.id) + '" aria-label="ฟังสรุป">🔊</button>' +
+          '<div class="grow">' + br(x.text) + '</div></li>';
+      }).join('') + '</ul></details>';
+  }
+
+  function pendingBanner() {
+    const n = pendingCount();
+    if (!n) return '';
+    return '<div class="banner"><span>⏳ มีผลสอบ ' + n + ' ชุดที่ยังไม่ได้ส่งขึ้น Google Sheet</span>' +
+      '<button class="btn sm" data-act="sync"' + (state.syncing ? ' disabled' : '') + '>⇪ ส่งตอนนี้</button></div>';
+  }
+
+  function feedbackBox(q, chosen) {
+    const ok = String(chosen) === String(q.answer);
+    return '<div class="fb ' + (ok ? 'ok' : 'bad') + '">' +
+      '<div><b>' + (ok ? '✅ ถูกต้อง' : '❌ ยังไม่ถูก · เฉลยคือ ข้อ ' + esc(q.answer)) + '</b></div>' +
+      (q.explanation ? '<div class="mt">💡 ' + br(q.explanation) + '</div>' : '') +
+      (q.reference ? '<div class="small muted mt">อ้างอิง: ' + esc(q.reference) + '</div>' : '') +
+      '<div class="row wrap mt"><button class="btn sm" data-act="speakExp" data-id="' + esc(q.id) + '">🔊 ฟังเฉลย</button>' +
+      '<button class="btn sm danger" data-act="flagQ" data-id="' + esc(q.id) + '">⚠️ แจ้งข้อนี้ผิด</button></div></div>';
+  }
+
   function viewSetup() {
     return '<section class="card narrow"><h2>👋 เริ่มต้นใช้งาน</h2>' +
       '<p class="muted">ใส่ลิงก์ Web App และ PIN ที่ตั้งไว้ใน Google Sheet ทำครั้งเดียว เครื่องจะจำไว้</p>' +
       connFields() + '<button class="btn primary block" data-act="connect">เชื่อมต่อ</button></section>';
   }
   function viewNoData() {
+    let status = '';
+    if (state.syncing) status = '<p class="msg">⏳ กำลังโหลดข้อมูลจากเซิร์ฟเวอร์... (รอได้ไม่เกินประมาณ 25–50 วินาที)</p>';
+    else if (state.lastErr) status = '<p class="msg bad">❌ ' + esc(state.lastErr) + '</p>' +
+      '<p class="small muted">เช็กว่า: ① ลิงก์ลงท้าย /exec ② Deploy เป็น "ทุกคน" ③ แก้สคริปต์แล้วต้อง Deploy เวอร์ชันใหม่ ④ PIN ถูกต้อง</p>';
     return '<section class="card narrow"><h2>ยังไม่มีข้อมูลในเครื่อง</h2>' +
-      '<p class="muted">ต้องต่ออินเทอร์เน็ตเพื่อโหลดข้อมูลครั้งแรก หลังจากนั้นจะใช้ออฟไลน์ได้</p>' +
-      '<div class="row wrap"><button class="btn primary" data-act="sync">⟳ โหลดข้อมูล</button>' +
+      '<p class="muted">ต้องต่ออินเทอร์เน็ตเพื่อโหลดข้อมูลครั้งแรก หลังจากนั้นจะใช้ออฟไลน์ได้</p>' + status +
+      '<div class="row wrap"><button class="btn primary" data-act="sync"' + (state.syncing ? ' disabled' : '') + '>⟳ โหลดข้อมูล</button>' +
       '<button class="btn" data-act="resetAll">แก้ลิงก์ / PIN</button></div></section>';
+  }
+
+  // แบนเนอร์ชวนติดตั้งแอป (ฟังก์ชันนี้ถูกเรียกใน viewHome แต่ไม่เคยถูกประกาศ ทำให้หน้าหลักพังหลังโหลดข้อมูลสำเร็จ)
+  function installBanner() {
+    let hidden = false;
+    try { hidden = localStorage.getItem(K_HIDE) === '1'; } catch (e) { /* ไม่เป็นไร */ }
+    if (hidden || isStandalone()) return '';
+    if (state.installEvt) {
+      return '<div class="banner"><span>📲 ติดตั้งแอปไว้บนหน้าจอ ใช้ออฟไลน์ได้</span>' +
+        '<span class="row"><button class="btn sm primary" data-act="install">ติดตั้ง</button>' +
+        '<button class="btn sm ghost" data-act="hideInstall">ไม่ต้อง</button></span></div>';
+    }
+    if (isIOS()) {
+      return '<div class="banner"><span>📲 iPhone/iPad: กดปุ่มแชร์ แล้วเลือก "เพิ่มไปยังหน้าจอโฮม"</span>' +
+        '<button class="btn sm ghost" data-act="hideInstall">ปิด</button></div>';
+    }
+    return '';
   }
 
   function viewHome() {
@@ -2189,7 +2333,8 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 
   function registerSW() {
     if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
-    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      try { reg.update(); } catch (e) { /* ไม่เป็นไร */ }
       reg.addEventListener('updatefound', function () {
         const nw = reg.installing;
         if (!nw) return;
