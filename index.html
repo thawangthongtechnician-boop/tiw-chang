@@ -13,8 +13,8 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" id="appleIcon" href="icon.svg">
 <style>
-:root{--primary:#1e3a8a;--accent:#2563eb;--bg:#f1f5f9;--card:#ffffff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--soft:#eef2ff;--bad:#dc2626;--r:16px;--tab:64px;--side:96px}
-[data-theme="dark"]{--bg:#0b1220;--card:#121a2b;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--soft:#1b2540;--accent:#60a5fa}
+:root{--primary:#1e3a8a;--accent:#2563eb;--bg:#f1f5f9;--card:#ffffff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--soft:#eef2ff;--bad:#dc2626;--ok:#16a34a;--r:16px;--tab:64px;--side:96px}
+[data-theme="dark"]{--bg:#0b1220;--card:#121a2b;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--soft:#1b2540;--accent:#60a5fa;--ok:#22c55e;--bad:#f87171}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:16px}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Sukhumvit Set","Thonburi","Noto Sans Thai","Leelawadee UI",Tahoma,sans-serif;font-size:1rem;line-height:1.65;-webkit-text-size-adjust:100%}
@@ -29,14 +29,16 @@ button,input,select{font:inherit;color:inherit}
 main{max-width:980px;margin:0 auto;padding:16px 14px calc(var(--tab) + 24px + env(safe-area-inset-bottom))}
 body.has-mini main{padding-bottom:calc(var(--tab) + 100px + env(safe-area-inset-bottom))}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
-.card h2{margin:0 0 8px;font-size:1.25rem}
+.card h2{margin:0 0 8px;font-size:1.2rem}
 .narrow{max-width:520px;margin:24px auto}
 .muted{color:var(--muted)}
 .small{font-size:.85rem}
 .mt{margin-top:12px}
+.center{text-align:center}
 .sec{margin:20px 4px 10px;font-size:1.05rem}
 .row{display:flex;gap:10px;align-items:center}
 .wrap{flex-wrap:wrap}
+.between{justify-content:space-between}
 .grow{flex:1;min-width:0}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600}
 .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
@@ -46,19 +48,19 @@ body.has-mini main{padding-bottom:calc(var(--tab) + 100px + env(safe-area-inset-
 .btn.block{width:100%}
 .btn:disabled{opacity:.45;cursor:default}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:var(--soft);cursor:pointer;font-size:1.15rem;flex:none}
-.icon-btn.sm{width:36px;height:36px;font-size:1rem}
+.icon-btn.sm{width:38px;height:38px;font-size:1rem}
 .icon-btn.lg{width:52px;height:52px;font-size:1.3rem}
 .spin span{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .field{display:block;margin:12px 0}
-.field>span{display:block;font-size:.9rem;color:var(--muted);margin-bottom:4px}
+.field>span{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
 .field input,.field select,.big-select{width:100%;min-height:46px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
 .big-select{font-weight:700;font-size:1.05rem;margin:4px 0 12px}
 .msg{min-height:1.2em;margin:8px 0;font-size:.9rem}
 .msg.bad{color:var(--bad)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .stat{background:var(--soft);border-radius:14px;padding:12px;text-align:center}
-.stat b{display:block;font-size:1.5rem;color:var(--accent)}
+.stat b{display:block;font-size:1.4rem;color:var(--accent)}
 .stat span{font-size:.85rem;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .tcard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:var(--r);padding:14px;cursor:pointer;width:100%}
@@ -81,15 +83,16 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 .num,.qn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--soft);display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
 .empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r);margin-bottom:14px}
 .banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
-.seg{display:flex;background:var(--soft);border-radius:12px;padding:4px;gap:4px;margin:8px 0}
-.seg button{flex:1;min-height:40px;border:0;border-radius:9px;background:transparent;cursor:pointer;font-weight:600}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:4px;gap:4px;margin:0 0 14px}
+.seg button{flex:1;min-height:42px;border:0;border-radius:9px;background:transparent;cursor:pointer;font-weight:600}
 .seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12);color:var(--accent)}
 .player{margin-top:10px;padding:14px;border-radius:14px;background:var(--soft)}
 .pnow{text-align:center;font-weight:600;min-height:1.6em}
 .pctrl{display:flex;justify-content:center;align-items:center;gap:14px;margin:10px 0}
 .play{width:68px;height:68px;border-radius:50%;border:0;background:var(--primary);color:#fff;font-size:1.6rem;cursor:pointer}
-.rates{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px;min-height:34px;cursor:pointer;font-size:.9rem}
+.rates,.chips{display:flex;gap:6px;flex-wrap:wrap}
+.rates{justify-content:center}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 14px;min-height:38px;cursor:pointer;font-size:.92rem}
 .chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
 .qlist{display:flex;flex-direction:column;gap:6px}
 .qitem{display:flex;gap:10px;text-align:left;padding:10px;border-radius:12px;border:1px solid transparent;background:transparent;cursor:pointer;width:100%}
@@ -97,6 +100,61 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 .qitem.on .qn{background:var(--accent);color:#fff}
 .qt{display:block;font-size:.8rem;color:var(--muted)}
 .qx{display:block}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mode{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--card);cursor:pointer}
+.mode b{font-size:1rem}
+.mode span{font-size:.82rem;color:var(--muted)}
+.mode.on{border-color:var(--accent);background:var(--soft)}
+.inline-num{width:96px;min-height:38px;padding:4px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.switch{display:flex;gap:10px;align-items:center;cursor:pointer;margin:12px 0}
+.switch input{width:22px;height:22px;flex:none}
+.progress{height:6px;background:var(--soft);border-radius:999px;overflow:hidden;margin-top:10px}
+.progress>i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.25rem;padding:2px 12px;border-radius:10px;background:var(--soft)}
+.timer.warn{background:#fee2e2;color:#991b1b;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.55}}
+.qtext{font-size:1.12rem;font-weight:600;margin:6px 0 14px;line-height:1.75}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:12px 14px;margin-bottom:10px;border-radius:14px;border:2px solid var(--line);background:var(--card);cursor:pointer;min-height:56px}
+.opt .ol{flex:none;width:34px;height:34px;border-radius:50%;background:var(--soft);display:inline-flex;align-items:center;justify-content:center;font-weight:800}
+.opt.sel{border-color:var(--accent);background:var(--soft)}
+.opt.sel .ol{background:var(--accent);color:#fff}
+.opt.correct{border-color:var(--ok);background:rgba(22,163,74,.12)}
+.opt.correct .ol{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:rgba(220,38,38,.10)}
+.opt.wrong .ol{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default;opacity:1;color:inherit}
+.fb{border-radius:14px;padding:12px 14px;margin-top:4px;background:var(--soft);border-left:5px solid var(--accent)}
+.fb.ok{border-left-color:var(--ok)}
+.fb.bad{border-left-color:var(--bad)}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;margin-top:10px}
+.qg{height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:700;font-size:.9rem;position:relative}
+.qg.ans{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+.qg.ok{background:rgba(22,163,74,.15);border-color:var(--ok);color:var(--ok)}
+.qg.bad{background:rgba(220,38,38,.12);border-color:var(--bad);color:var(--bad)}
+.qg.cur{outline:3px solid var(--accent);outline-offset:1px}
+.qg.mk::after{content:'★';position:absolute;top:-8px;right:-4px;font-size:.8rem;color:#f59e0b}
+.big-score{font-size:3.2rem;font-weight:800;line-height:1.15}
+.pass{color:var(--ok)}
+.fail{color:var(--bad)}
+.bar{height:10px;background:var(--soft);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px}
+.trow{padding:12px 0;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:0}
+.hrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:10px 4px;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer}
+.hrow:last-child{border-bottom:0}
+.score-pill{flex:none;min-width:66px;text-align:center;font-weight:800;border-radius:999px;padding:4px 10px}
+.score-pill.pass{background:rgba(22,163,74,.15)}
+.score-pill.fail{background:rgba(220,38,38,.12)}
+.chart{width:100%;height:auto;display:block}
+.ch-grid{stroke:var(--line);stroke-width:1}
+.ch-pass{stroke:var(--ok);stroke-width:2;stroke-dasharray:6 6}
+.ch-line{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.ch-dot{fill:var(--card);stroke:var(--accent);stroke-width:3}
+.ch-txt{fill:var(--muted);font-size:12px}
+.rv{border-top:1px solid var(--line);padding:14px 0}
+.rv:first-child{border-top:0;padding-top:0}
+.rv .opt{min-height:0;padding:8px 10px;margin-bottom:6px;cursor:default}
+.rv .qtext{font-size:1rem}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:var(--tab);border:0;background:none;cursor:pointer;color:var(--muted)}
 .tab .ti{font-size:1.3rem;line-height:1}
@@ -109,7 +167,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 .mtext span{font-size:.8rem;opacity:.85}
 #toast{position:fixed;left:50%;bottom:calc(var(--tab) + 100px);transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;max-width:90vw;text-align:center;font-size:.92rem}
 #toast.show{opacity:1}
-@media (max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.mode-grid{grid-template-columns:1fr}}
 @media (min-width:900px){
   body.has-tabs{padding-left:var(--side)}
   .tabbar{top:0;bottom:0;right:auto;width:var(--side);flex-direction:column;justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 12px);border-top:0;border-right:1px solid var(--line)}
@@ -131,24 +189,38 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 (function () {
   'use strict';
 
-  const APP_VERSION = '2.0.0';
+  const APP_VERSION = '3.0.0';
   const NL = String.fromCharCode(10);
   const K_CFG = 'tiw_cfg';
   const K_DATA = 'tiw_data';
   const K_HIDE = 'tiw_hide_install';
+  const K_LOCAL = 'tiw_attempts';
+  const K_FLAGS = 'tiw_flags';
+  const K_SES = 'tiw_session';
+  const K_OLD = 'tiw_hist';
   const LETTERS = ['ก', 'ข', 'ค', 'ง'];
   const KEYS = ['a', 'b', 'c', 'd'];
+  const MODE_LABEL = { practice: 'ฝึกทำ', mock: 'จำลองสอบ', review: 'ทวนข้อผิด' };
 
   const DEFAULT_CFG = { apiUrl: '', pin: '', annId: '', theme: 'auto', font: 'normal',
-    rate: 1, rateTouched: false, voice: '', qaPause: 5 };
+    rate: 1, rateTouched: false, voice: '', qaPause: 5,
+    exMode: 'practice', exTopics: [], exCount: 0, exMin: 0, exSmart: true };
   let cfg = Object.assign({}, DEFAULT_CFG, loadJSON(K_CFG, {}));
+  if (!Array.isArray(cfg.exTopics)) cfg.exTopics = [];
+  if (!MODE_LABEL[cfg.exMode]) cfg.exMode = 'practice';
   let data = loadJSON(K_DATA, null);
   const state = { view: 'home', topicId: '', listenTopic: 'all', listenMode: 'summary',
-    syncing: false, online: navigator.onLine, installEvt: null };
+    syncing: false, online: navigator.onLine, installEvt: null,
+    examTab: 'start', ses: loadJSON(K_SES, null), res: null, gridOpen: false };
+  if (state.ses && (!Array.isArray(state.ses.qs) || !state.ses.qs.length)) state.ses = null;
   const player = { queue: [], key: '', idx: 0, chunkIdx: 0, playing: false, done: false, token: 0, timer: null, utter: null };
   let wakeLock = null;
   let toastTimer = null;
+  let examTimer = null;
+  let advTimer = null;
+  let syncPromise = null;
   const hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+  migrateOld();
 
   /* =========== ตัวช่วยทั่วไป =========== */
   function byId(id) { return document.getElementById(id); }
@@ -170,11 +242,24 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     s = String(s || '').split(NL).join(' ');
     return s.length > n ? s.slice(0, n) + '…' : s;
   }
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+  function round1(v) { return Math.round((Number(v) || 0) * 10) / 10; }
   function fmtDate(v) {
     if (!v) return '-';
     const d = new Date(v);
     if (isNaN(d.getTime())) return String(v);
     return d.toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+  function fmtClock(sec) {
+    sec = Math.max(0, Math.round(sec));
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    return (h ? h + ':' + pad2(m) : pad2(m)) + ':' + pad2(s);
+  }
+  function fmtDur(sec) {
+    sec = Math.max(0, Math.round(Number(sec) || 0));
+    const m = Math.floor(sec / 60), s = sec % 60;
+    if (!m) return s + ' วินาที';
+    return m + ' นาที' + (s ? ' ' + s + ' วินาที' : '');
   }
   function toast(msg) {
     const t = byId('toast');
@@ -182,7 +267,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3000);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3200);
   }
   function isIOS() {
     const ua = navigator.userAgent;
@@ -194,6 +279,18 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   }
   function isReady() { return !!(cfg.apiUrl && cfg.pin && data); }
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function newId() {
+    return 'EX' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase();
+  }
+  function stat(n, label) { return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
 
   /* =========== ข้อมูล =========== */
   function list(name) { return (data && Array.isArray(data[name])) ? data[name] : []; }
@@ -224,8 +321,101 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       return sumTopic(s) === tid && String(s.text || '').trim() !== '';
     });
   }
-  function qsOf(tid) { return list('questions').filter(function (q) { return q.topic_id === tid; }); }
+  function qsOf(tid) { return list('questions').filter(function (q) { return q.topic_id === tid && validQ(q); }); }
   function appName() { return (data && data.settings && data.settings.app_name) || 'ติวหัวหน้าฝ่ายช่าง'; }
+  function settingNum(k, d) {
+    const v = Number(data && data.settings && data.settings[k]);
+    return v > 0 ? v : d;
+  }
+  function passPct() { return settingNum('pass_percent', 60); }
+  function examCount() { return cfg.exCount || settingNum('exam_default_count', 20); }
+  function examMinutes() { return cfg.exMin || settingNum('exam_default_minutes', 30); }
+
+  /* =========== ข้อมูลข้อสอบ =========== */
+  function validQ(q) {
+    return !!(q && q.question && q.a && q.b && LETTERS.indexOf(String(q.answer)) > -1);
+  }
+  function questionsIn(tids) {
+    const set = {};
+    tids.forEach(function (t) { set[t] = true; });
+    return list('questions').filter(function (q) { return set[q.topic_id] && validQ(q); });
+  }
+  function snapQ(q) {
+    return { id: q.id, topic_id: q.topic_id, question: q.question, a: q.a || '', b: q.b || '', c: q.c || '', d: q.d || '',
+      answer: String(q.answer), explanation: q.explanation || '', reference: q.reference || '' };
+  }
+  function findQ(id) {
+    let pools = [];
+    if (state.ses) pools = pools.concat(state.ses.qs);
+    if (state.res) pools = pools.concat(state.res.qs);
+    pools = pools.concat(list('questions'));
+    return pools.find(function (q) { return q.id === id; }) || null;
+  }
+  function selectedTopics() {
+    const topics = topicsOfAnn();
+    const sel = cfg.exTopics.filter(function (id) { return topics.some(function (t) { return t.id === id; }); });
+    return { sel: sel, tids: sel.length ? sel : topics.map(function (t) { return t.id; }) };
+  }
+  function topicLabel(ids) {
+    const arr = (Array.isArray(ids) ? ids : String(ids || '').split(',')).filter(function (x) { return x; });
+    if (!arr.length) return '';
+    if (arr.length > 1) return 'หลายหัวข้อ (' + arr.length + ')';
+    const t = topicById(arr[0]);
+    return t ? t.name : '';
+  }
+
+  // ผลสอบที่ทำในเครื่องนี้ (เก็บทุกชุดที่ยังไม่ส่ง + 30 ชุดล่าสุดที่ส่งแล้ว)
+  function localAttempts() { return loadJSON(K_LOCAL, []); }
+  function saveLocal(arr) {
+    const uns = arr.filter(function (a) { return !a.synced; });
+    const syn = arr.filter(function (a) { return a.synced; }).slice(-30);
+    const all = syn.concat(uns).sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : 1; });
+    saveJSON(K_LOCAL, all);
+  }
+  function pendingCount() { return localAttempts().filter(function (a) { return !a.synced; }).length; }
+  function migrateOld() {
+    const old = loadJSON(K_OLD, null);
+    localStorage.removeItem(K_OLD);
+    if (!Array.isArray(old) || !old.length) return;
+    const cur = localAttempts();
+    const ids = cur.map(function (a) { return a.id; });
+    old.forEach(function (a) {
+      if (a && a.id && ids.indexOf(a.id) === -1) { a.synced = false; cur.push(a); }
+    });
+    saveLocal(cur);
+  }
+
+  // สถิติรายข้อ = ค่าจาก Google Sheet + ผลที่ยังไม่ขึ้นชีต
+  function qStats() {
+    const m = {};
+    list('questions').forEach(function (q) {
+      m[q.id] = { n: Number(q.attempts) || 0, w: Number(q.wrongs) || 0, last: String(q.last_result || '') };
+    });
+    const savedAt = (data && data.savedAt) || '';
+    localAttempts().forEach(function (a) {
+      if (a.synced && savedAt && String(a.syncedAt) < savedAt) return;
+      (a.answers || []).forEach(function (x) {
+        if (!m[x.qid]) m[x.qid] = { n: 0, w: 0, last: '' };
+        const s = m[x.qid];
+        s.n++;
+        if (!x.correct) s.w++;
+        s.last = x.correct ? 'ถูก' : 'ผิด';
+      });
+    });
+    return m;
+  }
+  function wrongCount(tids) {
+    const st = qStats();
+    return questionsIn(tids).filter(function (q) { return (st[q.id] || {}).last === 'ผิด'; }).length;
+  }
+  function allHistory() {
+    const server = list('history');
+    const ids = {};
+    server.forEach(function (h) { ids[String(h.id)] = true; });
+    const extra = localAttempts().filter(function (a) { return !ids[String(a.id)]; });
+    return server.concat(extra).filter(function (h) { return Number(h.total) > 0; })
+      .sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : 1; });
+  }
 
   /* =========== เชื่อมต่อหลังบ้าน =========== */
   function api(action, extra) {
@@ -253,6 +443,40 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       });
   }
 
+  function sendFlags() {
+    const fl = loadJSON(K_FLAGS, []);
+    if (!fl.length) return Promise.resolve();
+    return api('flagQuestion', fl[0]).catch(function (err) {
+      if (err.code !== 'NOT_FOUND') throw err;
+    }).then(function () {
+      saveJSON(K_FLAGS, loadJSON(K_FLAGS, []).slice(1));
+      return sendFlags();
+    });
+  }
+
+  // ส่งผลสอบและการแจ้งข้อผิดที่ค้างอยู่ขึ้น Google Sheet
+  function syncAll() {
+    if (syncPromise) return syncPromise;
+    if (!navigator.onLine || !cfg.apiUrl || !cfg.pin) return Promise.resolve(false);
+    const todo = localAttempts().filter(function (a) { return !a.synced; });
+    let p = Promise.resolve();
+    if (todo.length) {
+      p = p.then(function () { return api('saveAttempts', { attempts: todo }); }).then(function () {
+        const ids = todo.map(function (a) { return a.id; });
+        const now = new Date().toISOString();
+        const cur = localAttempts();
+        cur.forEach(function (a) {
+          if (ids.indexOf(a.id) > -1 && !a.synced) { a.synced = true; a.syncedAt = now; }
+        });
+        saveLocal(cur);
+      });
+    }
+    p = p.then(sendFlags);
+    syncPromise = p.then(function () { syncPromise = null; return true; },
+      function (err) { syncPromise = null; throw err; });
+    return syncPromise;
+  }
+
   function refresh(silent) {
     if (!cfg.apiUrl || !cfg.pin) return Promise.resolve();
     if (!navigator.onLine) {
@@ -262,7 +486,9 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     if (state.syncing) return Promise.resolve();
     state.syncing = true;
     renderHeader();
-    return api('bootstrap').then(function (d) {
+    return syncAll().catch(function () { /* ส่งรอบหน้า */ }).then(function () {
+      return api('bootstrap');
+    }).then(function (d) {
       d.savedAt = new Date().toISOString();
       data = d;
       saveJSON(K_DATA, d);
@@ -273,7 +499,9 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       else if (!silent || !data) toast(err.message);
     }).then(function () {
       state.syncing = false;
-      if (state.view === 'settings') { renderHeader(); renderTabs(); } else render();
+      const ae = document.activeElement;
+      const typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT' || ae.tagName === 'TEXTAREA');
+      if (typing) { renderHeader(); renderTabs(); } else render();
     });
   }
 
@@ -327,8 +555,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     if (!vs.length) return null;
     return vs.find(function (v) { return v.name === cfg.voice; }) || vs[0];
   }
-
-  // แบ่งข้อความเป็นท่อนสั้น ๆ (iPad จะอ่านข้อความยาวได้ไม่ครบ)
   function chunkText(text) {
     const out = [];
     String(text || '').split(NL).forEach(function (line) {
@@ -348,17 +574,15 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     });
     return out;
   }
-
   function qaChunks(q) {
     let c = chunkText('คำถาม. ' + q.question);
     KEYS.forEach(function (k, i) { if (q[k]) c = c.concat(chunkText('ข้อ ' + LETTERS[i] + '. ' + q[k])); });
-    c.push((Number(cfg.qaPause) || 5) * 1000); // ตัวเลข = หยุดให้คิด (มิลลิวินาที)
+    c.push((Number(cfg.qaPause) || 5) * 1000);
     const ai = LETTERS.indexOf(String(q.answer));
     c = c.concat(chunkText('เฉลย ข้อ ' + q.answer + (ai > -1 && q[KEYS[ai]] ? '. ' + q[KEYS[ai]] : '')));
     if (q.explanation) c = c.concat(chunkText('คำอธิบาย. ' + q.explanation));
     return c;
   }
-
   function buildQueue(mode, tkey) {
     const tids = tkey === 'all' ? topicsOfAnn().map(function (t) { return t.id; }) : [tkey];
     const q = [];
@@ -378,9 +602,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     });
     return q;
   }
-
   function selKey() { return state.listenMode + '|' + (state.listenTopic || 'all'); }
-
   function playSelection(start) {
     const key = selKey();
     if (player.key !== key || !player.queue.length) {
@@ -390,7 +612,11 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     if (!player.queue.length) { toast('ไม่มีรายการให้ฟัง'); return; }
     playItem(start || 0);
   }
-
+  function speakText(key, title, text) {
+    player.queue = [{ id: key, title: title, text: text, chunks: chunkText(text) }];
+    player.key = 'one|' + key;
+    playItem(0);
+  }
   function startSpeak(tk) {
     if (!hasTTS()) { toast('เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน'); player.playing = false; updatePlayerUI(); return; }
     clearTimeout(player.timer);
@@ -402,7 +628,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       speakChunk(tk);
     }
   }
-
   function speakChunk(tk) {
     if (tk !== player.token || !player.playing) return;
     const item = player.queue[player.idx];
@@ -446,7 +671,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     player.utter = u;
     window.speechSynthesis.speak(u);
   }
-
   function playItem(i) {
     if (i < 0 || i >= player.queue.length) return;
     player.token++;
@@ -463,7 +687,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     player.done = true;
     keepAwake(false);
     updatePlayerUI();
-    toast('ฟังจบแล้ว 🎉');
+    if (player.queue.length > 1) toast('ฟังจบแล้ว 🎉');
   }
   function pauseSpeech() {
     player.playing = false;
@@ -503,8 +727,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     if (player.chunkIdx > 1 || player.idx === 0) playItem(player.idx);
     else playItem(player.idx - 1);
   }
-
-  // กันหน้าจอดับระหว่างฟัง (ถ้าเครื่องรองรับ)
   function keepAwake(on) {
     try {
       if (on && navigator.wakeLock && !wakeLock) {
@@ -518,7 +740,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       }
     } catch (e) { /* ไม่รองรับ */ }
   }
-
   function nowText(same) {
     if (same && player.queue.length) {
       const it = player.queue[player.idx] || {};
@@ -527,7 +748,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     }
     return 'กด ▶ เพื่อเริ่มฟัง หรือแตะรายการที่ต้องการ';
   }
-
   function updatePlayerUI() {
     renderMini();
     if (state.view !== 'listen') return;
@@ -543,6 +763,128 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       n.classList.toggle('on', on);
       if (on && player.playing) n.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
+  }
+
+  /* =========== ระบบข้อสอบ =========== */
+  function saveSession() { if (state.ses) saveJSON(K_SES, state.ses); }
+  function timeLeft(s) { return Math.max(0, Math.round((s.endAt - Date.now()) / 1000)); }
+  function answeredCount(s) { return s.qs.filter(function (q) { return s.answers[q.id]; }).length; }
+
+  function smartPick(pool, st) {
+    const arr = shuffle(pool);
+    const pri = {};
+    arr.forEach(function (q) {
+      const s = st[q.id] || { n: 0, w: 0, last: '' };
+      let p = 0;
+      if (s.last === 'ผิด') p += 3;
+      if (!s.n) p += 2;
+      if (s.n) p += s.w / s.n;
+      pri[q.id] = p;
+    });
+    return arr.sort(function (a, b) { return pri[b.id] - pri[a.id]; });
+  }
+
+  // o = { mode, tids, count, minutes, smart, qs (ถ้าส่งรายการข้อมาเอง) }
+  function startSession(o) {
+    const st = qStats();
+    let pool = o.qs ? o.qs.slice() : questionsIn(o.tids || []);
+    if (o.mode === 'review' && !o.qs) pool = pool.filter(function (q) { return (st[q.id] || {}).last === 'ผิด'; });
+    if (!pool.length) {
+      toast(o.mode === 'review' ? 'ไม่มีข้อที่ต้องทวนแล้ว เยี่ยมมาก 👍' : 'ไม่มีข้อสอบตามเงื่อนไขที่เลือก');
+      return;
+    }
+    let qs = (o.mode === 'practice' && o.smart && !o.qs) ? smartPick(pool, st) : shuffle(pool);
+    const n = Math.max(1, Math.min(Number(o.count) || qs.length, qs.length));
+    qs = qs.slice(0, n);
+    const now = Date.now();
+    const min = Math.max(1, Number(o.minutes) || 30);
+    state.ses = {
+      id: newId(), mode: o.mode, qs: qs.map(snapQ), cur: 0, answers: {}, marks: {},
+      startAt: now, limitMin: o.mode === 'mock' ? min : 0, endAt: o.mode === 'mock' ? now + min * 60000 : 0
+    };
+    state.gridOpen = o.mode === 'mock';
+    saveSession();
+    startTimer();
+    state.view = 'exam';
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function endSession() {
+    clearInterval(examTimer);
+    clearTimeout(advTimer);
+    state.ses = null;
+    localStorage.removeItem(K_SES);
+  }
+
+  function guardSession() {
+    if (!state.ses) return true;
+    if (!window.confirm('มีข้อสอบที่ทำค้างอยู่ ต้องการทิ้งชุดเดิมแล้วเริ่มชุดใหม่?')) { goTo('exam'); return false; }
+    endSession();
+    return true;
+  }
+
+  function startTimer() {
+    clearInterval(examTimer);
+    const s = state.ses;
+    if (!s || s.mode !== 'mock') return;
+    examTimer = setInterval(tick, 1000);
+    tick();
+  }
+
+  function tick() {
+    const s = state.ses;
+    if (!s || s.mode !== 'mock') { clearInterval(examTimer); return; }
+    const left = timeLeft(s);
+    const el = byId('exTimer');
+    if (el) {
+      el.textContent = fmtClock(left);
+      el.classList.toggle('warn', left <= 300);
+    }
+    if (left <= 0) {
+      clearInterval(examTimer);
+      finishSession(true);
+    }
+  }
+
+  function finishSession(auto) {
+    const s = state.ses;
+    if (!s) return;
+    clearInterval(examTimer);
+    clearTimeout(advTimer);
+    const isMock = s.mode === 'mock';
+    const items = s.qs.filter(function (q) { return isMock || s.answers[q.id]; });
+    if (!items.length) {
+      endSession();
+      toast('ยังไม่ได้ตอบข้อใด จึงไม่บันทึกผล');
+      goTo('exam');
+      return;
+    }
+    const answers = items.map(function (q) {
+      const chosen = s.answers[q.id] || '';
+      return { qid: q.id, chosen: chosen, correct: chosen === String(q.answer) };
+    });
+    const correct = answers.filter(function (x) { return x.correct; }).length;
+    const endTime = isMock ? Math.min(Date.now(), s.endAt) : Date.now();
+    const tids = [];
+    items.forEach(function (q) { if (tids.indexOf(q.topic_id) === -1) tids.push(q.topic_id); });
+    const attempt = {
+      id: s.id, date: new Date().toISOString(), mode: MODE_LABEL[s.mode], topic_ids: tids,
+      total: items.length, correct: correct, score: round1(correct * 100 / items.length),
+      time_used: Math.round((endTime - s.startAt) / 1000), time_limit: isMock ? s.limitMin : '',
+      wrong_ids: answers.filter(function (x) { return !x.correct; }).map(function (x) { return x.qid; }).join(','),
+      answers: answers, synced: false
+    };
+    const cur = localAttempts();
+    cur.push(attempt);
+    saveLocal(cur);
+    endSession();
+    state.res = { attempt: attempt, qs: items, filter: 'all' };
+    state.view = 'result';
+    render();
+    window.scrollTo(0, 0);
+    if (auto) toast('⏰ หมดเวลา ระบบส่งข้อสอบให้อัตโนมัติ');
+    refresh(true);
   }
 
   /* =========== ส่วนแสดงผลหลัก =========== */
@@ -568,7 +910,8 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     document.body.classList.toggle('has-tabs', ready);
     if (!ready) { n.hidden = true; n.innerHTML = ''; return; }
     n.hidden = false;
-    const active = state.view === 'topic' ? 'learn' : state.view;
+    const map = { topic: 'learn', result: 'exam' };
+    const active = map[state.view] || state.view;
     n.innerHTML = TABS.map(function (t) {
       return '<button class="tab' + (active === t[0] ? ' on' : '') + '" data-act="go" data-id="' + t[0] + '">' +
         '<span class="ti">' + t[1] + '</span><span class="tl">' + t[2] + '</span></button>';
@@ -609,13 +952,11 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       '<input id="fPin" type="password" inputmode="numeric" autocomplete="off" placeholder="ตัวเลข 4-8 หลัก" value="' + esc(cfg.pin) + '"></label>' +
       '<div id="fMsg" class="msg"></div>';
   }
-
   function viewSetup() {
     return '<section class="card narrow"><h2>👋 เริ่มต้นใช้งาน</h2>' +
       '<p class="muted">ใส่ลิงก์ Web App และ PIN ที่ตั้งไว้ใน Google Sheet ทำครั้งเดียว เครื่องจะจำไว้</p>' +
       connFields() + '<button class="btn primary block" data-act="connect">เชื่อมต่อ</button></section>';
   }
-
   function viewNoData() {
     return '<section class="card narrow"><h2>ยังไม่มีข้อมูลในเครื่อง</h2>' +
       '<p class="muted">ต้องต่ออินเทอร์เน็ตเพื่อโหลดข้อมูลครั้งแรก หลังจากนั้นจะใช้ออฟไลน์ได้</p>' +
@@ -638,8 +979,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     return '';
   }
 
-  function stat(n, label) { return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
-
   function topicCard(t) {
     return '<button class="tcard" data-act="openTopic" data-id="' + esc(t.id) + '">' +
       '<div class="tname">' + esc(t.name) + '</div>' +
@@ -651,6 +990,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   function viewHome() {
     const ann = currentAnn();
     const topics = topicsOfAnn();
+    const tids = topics.map(function (t) { return t.id; });
     let nd = 0, ns = 0, nq = 0;
     topics.forEach(function (t) { nd += docsOf(t.id).length; ns += sumsOf(t.id).length; nq += qsOf(t.id).length; });
 
@@ -666,6 +1006,24 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     }
     h += '<div class="stats">' + stat(topics.length, 'หัวข้อ') + stat(nd, 'เอกสาร') + stat(ns, 'สรุป') + stat(nq, 'ข้อสอบ') + '</div>';
     h += '<div class="small muted mt">ข้อมูลล่าสุด: ' + fmtDate(data.savedAt) + '</div></section>';
+
+    const wc = wrongCount(tids);
+    const hist = allHistory();
+    const last = hist[hist.length - 1];
+    h += '<section class="card"><h2>📝 ข้อสอบ</h2>';
+    if (state.ses) {
+      h += '<div class="banner"><div>มีข้อสอบ <b>' + MODE_LABEL[state.ses.mode] + '</b> ทำค้างอยู่ (ตอบแล้ว ' +
+        answeredCount(state.ses) + '/' + state.ses.qs.length + ' ข้อ)</div>' +
+        '<button class="btn primary sm" data-act="go" data-id="exam">ทำต่อ ›</button></div>';
+    }
+    if (last) {
+      h += '<div class="small muted">ครั้งล่าสุด: ' + esc(last.mode) + ' ได้ <b class="' + (Number(last.score) >= passPct() ? 'pass' : 'fail') + '">' +
+        round1(last.score) + '%</b> (' + fmtDate(last.date) + ')</div>';
+    }
+    h += '<div class="row wrap mt">' +
+      '<button class="btn primary" data-act="quickExam" data-id="mock"' + (nq ? '' : ' disabled') + '>⏱ จำลองสอบ</button>' +
+      '<button class="btn" data-act="quickExam" data-id="practice"' + (nq ? '' : ' disabled') + '>✏️ ฝึกทำ</button>' +
+      '<button class="btn" data-act="quickExam" data-id="review"' + (wc ? '' : ' disabled') + '>🔁 ทวนข้อผิด (' + wc + ')</button></div></section>';
 
     h += '<section class="card"><h2>🎧 ฟังเลย</h2><div class="row wrap">';
     if (player.queue.length) h += '<button class="btn primary" data-act="go" data-id="listen">▶ ฟังต่อ (' + (player.idx + 1) + '/' + player.queue.length + ')</button>';
@@ -693,317 +1051,838 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     return m[t] || '📄';
   }
   function statusBadge(s) {
-    if (s === 'ประมวลผลแล้ว') return '<span class="badge ok">ประมวลผลแล้ว</span>';
-    if (s === 'ผิดพลาด') return '<span class="badge bad">ผิดพลาด</span>';
-    return '<span class="badge wait">' + esc(s || 'รอประมวลผล') + '</span>';
+    if (s === 'ประมวลผลแล้ว') return '<span class="badge ## ช่วงที่ 3 (ฉบับใหม่): ระบบข้อสอบเต็มรูปแบบ
+
+ผมตรวจโค้ดช่วงที่ 3 ฉบับก่อนแล้ว พบปัญหาจริงหลายจุดครับ:
+- **กดหัวข้อในคลังความรู้แล้วแอปค้าง** เพราะโค้ดเรียกฟังก์ชันที่ไม่มีอยู่จริง
+- **ปุ่ม "ทำข้อสอบหัวข้อนี้" ใช้ไม่ได้**
+- **ฟีเจอร์จากช่วงที่ 2 หายไปหลายอย่าง** เช่น หน้าตั้งค่า เลือกเสียง รายการในหน้าฟัง และป้ายติดตั้งแอป
+- **ส่งข้อสอบแล้วไม่มีหน้าสรุปผล** และยังไม่มีกราฟหรือสถิติแยกตามหัวข้อตามที่ตกลงกันไว้
+- **ช่องตั้งเวลาไม่ซ่อนหรือแสดงตามโหมด** และโหมดฝึกข้ามไปข้อถัดไปเองเร็วเกินไป จนอ่านเฉลยไม่ทัน
+- **ถ้าแอปรีโหลดกลางคัน ข้อสอบที่ทำอยู่จะหาย**
+
+ฉบับนี้ผมเขียนใหม่ทั้งหมด และเก็บฟีเจอร์ของช่วงที่ 2 ไว้ครบครับ
+
+### สิ่งที่ได้ในฉบับนี้
+
+| ส่วน | รายละเอียด |
+|---|---|
+| **✏️ ฝึกทำ** | ตอบแล้วรู้ผลทันที มีเฉลย คำอธิบาย และที่มาของข้อมูล มีปุ่ม 🔊 ฟังโจทย์และฟังเฉลย ไม่ข้ามข้อเอง จึงอ่านเฉลยได้เต็มที่ |
+| **⏱ จำลองสอบ** | ตั้งจำนวนข้อและเวลาได้เอง เปลี่ยนคำตอบได้ ทำเครื่องหมาย ★ ข้อที่ไม่แน่ใจได้ มีตารางเลขข้อให้กระโดดไปข้อไหนก็ได้ ส่งให้เองเมื่อหมดเวลา และเตือนก่อนส่งถ้ายังมีข้อที่ไม่ได้ตอบ |
+| **🔁 ทวนข้อผิด** | ดึงเฉพาะข้อที่ตอบผิดในครั้งล่าสุด ข้อไหนทวนจนตอบถูกแล้วจะหลุดออกจากรายการทวนเอง |
+| **เลือกข้อแบบฉลาด** | ในโหมดฝึก ระบบจะเลือกข้อที่ยังไม่เคยทำและข้อที่เคยผิดมาให้ก่อน |
+| **หน้าสรุปผล** | แสดงคะแนน ผ่านหรือไม่ผ่านเกณฑ์ เวลาที่ใช้ และคะแนนแยกตามหัวข้อ ดูเฉลยย้อนหลังได้ทุกข้อ และกด "ฝึกซ้ำเฉพาะข้อที่ผิด" ได้ |
+| **📊 สถิติ** | กราฟคะแนน 20 ครั้งล่าสุด ความแม่นแยกตามหัวข้อโดยเรียงหัวข้อที่อ่อนที่สุดไว้บนสุด ข้อที่ผิดบ่อย และประวัติการสอบที่กดดูย้อนหลังได้ |
+| **ทำข้อสอบค้างไว้ได้** | ปิดแอปหรือสลับหน้ากลางคันแล้วกลับมาทำต่อได้ ในโหมดจำลองสอบเวลาจะเดินต่อเหมือนสอบจริง |
+| **ใช้ออฟไลน์** | ทำข้อสอบและแจ้งข้อผิดได้แม้ไม่มีเน็ต แล้วระบบส่งผลขึ้น Google Sheet ให้เองเมื่อกลับมาออนไลน์ |
+| **แป้นพิมพ์ไอแพด** | กดเลข 1–4 เพื่อเลือกคำตอบ และกดลูกศรซ้ายขวาเพื่อเปลี่ยนข้อ |
+
+**ทำไมไม่สลับลำดับตัวเลือก:** คำอธิบายเฉลยมักอ้างถึงตัวเลือก เช่น "ข้อ ก และ ข ถูก" ถ้าสลับตัวเลือก คำอธิบายจะไม่ตรงกับตัวเลือกที่เห็นครับ ระบบจึงสลับเฉพาะลำดับข้อ
+
+---
+
+## ขั้นที่ 1: อัปเดต `Code.gs` (หลังบ้าน v1.2.0)
+
+ฉบับนี้นำส่วนที่ฉบับก่อนตัดหายไปกลับมาครบ ได้แก่ การลบข้อมูลที่ผูกกันพร้อมกัน ค่าเริ่มต้นตอนเพิ่มข้อมูล และฟังก์ชันทดสอบ แล้วเพิ่มคำสั่ง **ล้างประวัติการสอบ** ซึ่งใช้ลบผลสอบทดลองทิ้งได้
+
+1. เปิด **ส่วนขยาย > Apps Script** แล้วลบโค้ดใน `Code.gs` ออกทั้งหมด
+2. กดปุ่ม **Copy** ที่มุมกล่องโค้ดด้านล่าง วางลงไป แล้วกดบันทึก 💾
+3. ไปที่ **Deploy > จัดการการทำให้ใช้งานได้** กดดินสอ ✏️ เลือก **เวอร์ชัน: เวอร์ชันใหม่** แล้วกด **Deploy**
+
+```javascript
+/**
+ * ติวหัวหน้าฝ่ายช่าง - หลังบ้าน (ไฟล์เดียว) v1.2.0
+ * ส่วนที่ 1 ตั้งค่า / ส่วนที่ 2 ฐานข้อมูล / ส่วนที่ 3 API / ส่วนที่ 4 ทดสอบ
+ */
+const APP_VERSION = '1.2.0';
+const NL = String.fromCharCode(10);
+
+/* =====================================================
+ * ส่วนที่ 1 : โครงสร้างชีต + เมนู + ตั้งค่าครั้งแรก
+ * ===================================================== */
+const SCHEMA = {
+  announcements: { sheet: 'ประกาศสรรหา', prefix: 'A', cols: [
+    ['id', 'รหัส'], ['name', 'ชื่อประกาศ'], ['year', 'ปี'], ['agency', 'หน่วยงาน'],
+    ['active', 'ใช้งาน'], ['note', 'หมายเหตุ']] },
+  topics: { sheet: 'หัวข้อ', prefix: 'T', cols: [
+    ['id', 'รหัส'], ['name', 'ชื่อหัวข้อ'], ['description', 'คำอธิบาย'],
+    ['order', 'ลำดับ'], ['active', 'ใช้งาน']] },
+  annTopics: { sheet: 'ประกาศ-หัวข้อ', prefix: 'L', cols: [
+    ['id', 'รหัส'], ['announcement_id', 'รหัสประกาศ'], ['topic_id', 'รหัสหัวข้อ']] },
+  documents: { sheet: 'เอกสาร', prefix: 'D', cols: [
+    ['id', 'รหัส'], ['topic_id', 'รหัสหัวข้อ'], ['title', 'ชื่อเอกสาร'], ['type', 'ประเภท'],
+    ['url', 'ลิงก์/ไฟล์'], ['file_id', 'รหัสไฟล์ Drive'], ['status', 'สถานะ'],
+    ['text_file_id', 'ไฟล์ข้อความ'], ['char_count', 'จำนวนตัวอักษร'],
+    ['updated_at', 'อัปเดตล่าสุด'], ['note', 'หมายเหตุ']] },
+  summaries: { sheet: 'สรุปเนื้อหา', prefix: 'S', cols: [
+    ['id', 'รหัส'], ['doc_id', 'รหัสเอกสาร'], ['topic_id', 'รหัสหัวข้อ'],
+    ['order', 'ลำดับ'], ['text', 'ข้อความสรุป']] },
+  questions: { sheet: 'คลังข้อสอบ', prefix: 'Q', cols: [
+    ['id', 'รหัส'], ['topic_id', 'รหัสหัวข้อ'], ['question', 'โจทย์'],
+    ['a', 'ตัวเลือก ก'], ['b', 'ตัวเลือก ข'], ['c', 'ตัวเลือก ค'], ['d', 'ตัวเลือก ง'],
+    ['answer', 'เฉลย'], ['explanation', 'คำอธิบาย'], ['reference', 'อ้างอิง'],
+    ['difficulty', 'ระดับ'], ['source', 'ที่มา'], ['status', 'สถานะ'], ['flag_reason', 'เหตุที่แจ้งผิด'],
+    ['attempts', 'จำนวนครั้งที่ทำ'], ['wrongs', 'จำนวนครั้งที่ผิด'], ['last_result', 'ผลล่าสุด'],
+    ['created_at', 'วันที่สร้าง']] },
+  history: { sheet: 'ประวัติการสอบ', prefix: 'H', cols: [
+    ['id', 'รหัส'], ['date', 'วันเวลา'], ['mode', 'โหมด'], ['topic_ids', 'หัวข้อ'], ['total', 'จำนวนข้อ'],
+    ['correct', 'ตอบถูก'], ['score', 'คะแนน (%)'], ['time_used', 'เวลาที่ใช้ (วินาที)'],
+    ['time_limit', 'เวลาที่กำหนด (นาที)'], ['wrong_ids', 'ข้อที่ผิด'], ['detail', 'รายละเอียด']] },
+  settings: { sheet: 'ตั้งค่า', prefix: '', cols: [
+    ['key', 'ชื่อค่า'], ['value', 'ค่า'], ['note', 'คำอธิบาย']] }
+};
+
+const DEFAULT_SETTINGS = [
+  ['app_name', 'ติวหัวหน้าฝ่ายช่าง', 'ชื่อแอปที่แสดงบนหน้าจอ'],
+  ['theme_color', '#1e3a8a', 'สีหลักของแอป'],
+  ['exam_default_count', 50, 'จำนวนข้อเริ่มต้นของโหมดจำลองสอบ'],
+  ['exam_default_minutes', 60, 'เวลาเริ่มต้นของโหมดจำลองสอบ (นาที)'],
+  ['pass_percent', 60, 'เกณฑ์ผ่าน (%)'],
+  ['speech_rate', 1, 'ความเร็วเสียงอ่านเริ่มต้น (0.5 ถึง 2)'],
+  ['gemini_model', 'gemini-2.5-flash', 'รุ่น AI (ใช้ในช่วงที่ 4)']
+];
+
+const LISTS = {
+  yesno: ['ใช่', 'ไม่'],
+  answer: ['ก', 'ข', 'ค', 'ง'],
+  difficulty: ['ง่าย', 'กลาง', 'ยาก'],
+  qstatus: ['ใช้งาน', 'ถูกแจ้งผิด', 'ปิด'],
+  doctype: ['PDF', 'เอกสาร', 'รูปภาพ', 'ลิงก์', 'ข้อความ'],
+  docstatus: ['รอประมวลผล', 'ประมวลผลแล้ว', 'ผิดพลาด']
+};
+
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('📘 ติวช่าง')
+    .addItem('1) ตั้งค่าระบบครั้งแรก', 'setup')
+    .addItem('2) ตั้ง / เปลี่ยน PIN', 'setPinUi')
+    .addSeparator()
+    .addItem('เติมรหัสที่ว่างทั้งหมด', 'fillAllIds')
+    .addItem('ดูสถานะระบบ', 'showStatus')
+    .addToUi();
+}
+
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    const sh = e.range.getSheet();
+    const table = tableBySheet_(sh.getName());
+    if (!table || !SCHEMA[table].prefix) return;
+    const r1 = e.range.getRow();
+    const r2 = r1 + e.range.getNumRows() - 1;
+    if (r2 < 2) return;
+    fillIds_(table, r1, r2);
+  } catch (err) {
+    // ไม่ต้องแจ้ง
   }
-  function sumList(items, open) {
-    if (!items.length) return '';
-    return '<details class="sums"' + (open ? ' open' : '') + '><summary>สรุป ' + items.length + ' ข้อ</summary><ul class="slist">' +
-      items.map(function (s, i) {
-        return '<li><span class="num">' + (i + 1) + '</span><div class="grow">' + br(s.text) + '</div>' +
-          '<button class="icon-btn sm" data-act="speakOne" data-id="' + esc(s.id) + '" aria-label="ฟัง">🔊</button></li>';
-      }).join('') + '</ul></details>';
-  }
+}
 
-  function viewTopic() {
-    const t = topicById(state.topicId);
-    if (!t) { state.view = 'learn'; return viewLearn(); }
-    const docs = docsOf(t.id), sums = sumsOf(t.id), qs = qsOf(t.id);
-    let h = '<button class="back" data-act="go" data-id="learn">‹ กลับ</button>';
-    h += '<section class="card"><h2>' + esc(t.name) + '</h2>' +
-      (t.description ? '<p class="muted">' + br(t.description) + '</p>' : '') +
-      '<div class="row wrap"><button class="btn primary" data-act="listenTopic" data-id="' + esc(t.id) + '"' + (sums.length ? '' : ' disabled') + '>🎧 ฟังสรุปทั้งหัวข้อ (' + sums.length + ')</button>' +
-      '<button class="btn" data-act="listenQA" data-id="' + esc(t.id) + '"' + (qs.length ? '' : ' disabled') + '>❓ ฟังถาม-ตอบ (' + qs.length + ')</button></div></section>';
-
-    h += '<h3 class="sec">เอกสาร (' + docs.length + ')</h3>';
-    if (!docs.length) h += '<div class="empty">ยังไม่มีเอกสารในหัวข้อนี้ เพิ่มได้ที่ชีต "เอกสาร"</div>';
-    docs.forEach(function (d) {
-      const ds = sums.filter(function (s) { return s.doc_id === d.id; });
-      h += '<section class="card"><div class="doc-head"><span class="dicon">' + docIcon(d.type) + '</span>' +
-        '<div class="grow"><div class="dtitle">' + esc(d.title || '(ไม่มีชื่อ)') + '</div>' +
-        '<div class="small muted">' + esc(d.type || '') + ' ' + statusBadge(d.status) + '</div></div>' +
-        (d.open_url ? '<button class="btn sm" data-act="openDoc" data-id="' + esc(d.id) + '">เปิด ↗</button>' : '') + '</div>' +
-        (d.note ? '<div class="small muted mt">' + br(d.note) + '</div>' : '') + sumList(ds, false) + '</section>';
-    });
-
-    const loose = sums.filter(function (s) {
-      return !s.doc_id || !docs.some(function (d) { return d.id === s.doc_id; });
-    });
-    if (loose.length) h += '<h3 class="sec">สรุปทั่วไป</h3><section class="card">' + sumList(loose, true) + '</section>';
-    return h;
-  }
-
-  /* ---------- ฟัง ---------- */
-  function viewListen() {
-    const topics = topicsOfAnn();
-    const tkey = state.listenTopic || 'all';
-    const items = buildQueue(state.listenMode, tkey);
-    const same = player.key === selKey();
-
-    let h = '<section class="card"><h2>🎧 ฟังเนื้อหา</h2>';
-    h += '<div class="seg"><button class="' + (state.listenMode === 'summary' ? 'on' : '') + '" data-act="mode" data-id="summary">สรุปเนื้อหา</button>' +
-      '<button class="' + (state.listenMode === 'qa' ? 'on' : '') + '" data-act="mode" data-id="qa">ถาม-ตอบ</button></div>';
-    h += '<label class="field"><span>หัวข้อ</span><select data-change="listenTopic"><option value="all">ทุกหัวข้อในประกาศนี้</option>' +
-      topics.map(function (t) {
-        return '<option value="' + esc(t.id) + '"' + (t.id === tkey ? ' selected' : '') + '>' + esc(t.name) + '</option>';
-      }).join('') + '</select></label>';
-    h += '<div class="player"><div id="pNow" class="pnow">' + nowText(same) + '</div>' +
-      '<div class="pctrl"><button class="icon-btn lg" data-act="pPrev" aria-label="ก่อนหน้า">⏮</button>' +
-      '<button id="pPlay" class="play" data-act="pToggleSel" aria-label="เล่น/หยุด">' + (same && player.playing ? '⏸' : '▶') + '</button>' +
-      '<button class="icon-btn lg" data-act="pNext" aria-label="ถัดไป">⏭</button>' +
-      '<button class="icon-btn lg" data-act="pStop" aria-label="หยุด">⏹</button></div>' +
-      '<div class="rates">' + [0.75, 1, 1.25, 1.5, 2].map(function (r) {
-        return '<button class="chip' + (Number(cfg.rate) === r ? ' on' : '') + '" data-act="rate" data-id="' + r + '">' + r + 'x</button>';
-      }).join('') + '</div></div></section>';
-
-    if (!items.length) {
-      h += state.listenMode === 'qa'
-        ? '<div class="empty">ยังไม่มีข้อสอบในหัวข้อนี้</div>'
-        : '<div class="empty">ยังไม่มีสรุปเนื้อหา<br>ช่วงที่ 4 AI จะสรุปให้อัตโนมัติ ตอนนี้ทดลองพิมพ์เองได้ในชีต "สรุปเนื้อหา"</div>';
-      return h;
-    }
-    h += '<section class="card"><div class="qlist">' + items.map(function (it, i) {
-      return '<button class="qitem' + (same && player.idx === i ? ' on' : '') + '" data-act="playAt" data-id="' + i + '" data-qi="' + i + '">' +
-        '<span class="qn">' + (i + 1) + '</span><span class="grow"><span class="qt">' + esc(it.title) + '</span>' +
-        '<span class="qx">' + br(it.text) + '</span>' +
-        (it.answer ? '<span class="qt">เฉลย: ' + esc(it.answer) + '</span>' : '') + '</span></button>';
-    }).join('') + '</div></section>';
-    return h;
-  }
-
-  /* ---------- ข้อสอบ / AI (ช่วงถัดไป) ---------- */
-  function viewExam() {
-    return '<section class="card"><h2>📝 ข้อสอบ</h2>' +
-      '<p>โหมดฝึก จำลองสอบจับเวลา ทวนข้อที่ผิด และสถิติ จะใช้งานได้ใน <b>ช่วงที่ 3</b></p>' +
-      '<p class="muted">ตอนนี้มีข้อสอบในคลัง ' + list('questions').length + ' ข้อ ระหว่างนี้ฟังแบบถาม-ตอบไปก่อนได้</p>' +
-      '<button class="btn primary" data-act="quickListen" data-id="qa">❓ ฟังถาม-ตอบ</button></section>';
-  }
-  function viewChat() {
-    return '<section class="card"><h2>💬 ถาม AI</h2>' +
-      '<p>แชตถาม-ตอบจากเอกสาร (พูดผ่านไมค์ได้) และให้ AI ออกข้อสอบ จะใช้งานได้ใน <b>ช่วงที่ 4</b></p>' +
-      '<p class="muted">ช่วงนั้นต้องใช้คีย์ Gemini ซึ่งผมจะสอนสมัครทีละขั้นครับ</p></section>';
-  }
-
-  /* ---------- ตั้งค่า ---------- */
-  function selectField(label, key, opts, cur) {
-    return '<label class="field"><span>' + esc(label) + '</span><select data-change="' + key + '">' +
-      opts.map(function (o) {
-        return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
-      }).join('') + '</select></label>';
-  }
-
-  function viewSettings() {
-    const vs = thaiVoices();
-    const kb = Math.round(((localStorage.getItem(K_DATA) || '').length * 2) / 1024);
-    let h = '<section class="card"><h2>🔗 การเชื่อมต่อ</h2>' + connFields() +
-      '<button class="btn primary" data-act="connect">ทดสอบและบันทึก</button></section>';
-    h += '<section class="card"><h2>🎨 การแสดงผล</h2>' +
-      selectField('ธีม', 'theme', [['auto', 'ตามระบบเครื่อง'], ['light', 'สว่าง'], ['dark', 'กลางคืน']], cfg.theme) +
-      selectField('ขนาดตัวอักษร', 'font', [['normal', 'ปกติ'], ['large', 'ใหญ่'], ['xlarge', 'ใหญ่มาก']], cfg.font) + '</section>';
-    h += '<section class="card"><h2>🔊 เสียงอ่าน</h2>';
-    if (vs.length) {
-      h += selectField('เสียงภาษาไทย', 'voice', [['', 'อัตโนมัติ']].concat(vs.map(function (v) { return [v.name, v.name]; })), cfg.voice);
-    } else {
-      h += '<div class="banner">⚠️ ยังไม่พบเสียงภาษาไทยในเครื่อง บนไอแพดไปที่ การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียง</div>';
-    }
-    h += selectField('เวลาคิดก่อนเฉลย (โหมดถาม-ตอบ)', 'qaPause',
-      [['3', '3 วินาที'], ['5', '5 วินาที'], ['10', '10 วินาที'], ['15', '15 วินาที']], String(cfg.qaPause)) +
-      '<button class="btn" data-act="testVoice">▶ ทดสอบเสียง</button></section>';
-    h += '<section class="card"><h2>💾 ข้อมูลในเครื่อง</h2>' +
-      '<p class="muted">ข้อมูลล่าสุด: ' + fmtDate(data && data.savedAt) + ' · ขนาดประมาณ ' + kb + ' KB</p>' +
-      '<div class="row wrap"><button class="btn" data-act="sync">⟳ อัปเดตข้อมูล</button>' +
-      '<button class="btn danger" data-act="clearData">ล้างข้อมูลในเครื่อง</button>' +
-      '<button class="btn danger" data-act="resetAll">ลบการตั้งค่าทั้งหมด</button></div></section>';
-    h += '<p class="small muted">แอป v' + APP_VERSION + ' · หลังบ้าน v' + esc((data && data.version) || '-') + '</p>';
-    return h;
-  }
-
-  const VIEWS = { home: viewHome, learn: viewLearn, topic: viewTopic, listen: viewListen,
-    exam: viewExam, chat: viewChat, settings: viewSettings };
-
-  /* =========== การกดปุ่ม =========== */
-  function goTo(view) { state.view = view; render(); window.scrollTo(0, 0); }
-
-  const ACTIONS = {
-    go: function (id) { goTo(id); },
-    openTopic: function (id) { state.topicId = id; goTo('topic'); },
-    sync: function () { refresh(false); },
-    connect: function (id, el) {
-      const url = byId('fUrl').value.trim();
-      const pin = byId('fPin').value.trim();
-      const msg = byId('fMsg');
-      function fail(t) { msg.textContent = '❌ ' + t; msg.className = 'msg bad'; }
-      if (url.indexOf('https://script.google.com/') !== 0 || url.slice(-5) !== '/exec') {
-        fail('ลิงก์ต้องขึ้นต้นด้วย https://script.google.com/ และลงท้ายด้วย /exec'); return;
-      }
-      if (pin.length < 4) { fail('กรุณาใส่ PIN'); return; }
-      if (!navigator.onLine) { fail('ต้องต่ออินเทอร์เน็ตก่อน'); return; }
-      const fromSettings = state.view === 'settings' && isReady();
-      const old = { apiUrl: cfg.apiUrl, pin: cfg.pin };
-      cfg.apiUrl = url;
-      cfg.pin = pin;
-      el.disabled = true;
-      el.textContent = 'กำลังเชื่อมต่อ...';
-      api('bootstrap').then(function (d) {
-        d.savedAt = new Date().toISOString();
-        data = d;
-        saveJSON(K_DATA, d);
-        saveCfg();
-        applyServerSettings();
-        toast('เชื่อมต่อสำเร็จ ✅');
-        state.view = fromSettings ? 'settings' : 'home';
-        render();
-      }).catch(function (err) {
-        cfg.apiUrl = old.apiUrl;
-        cfg.pin = old.pin;
-        fail(err.message);
-        el.disabled = false;
-        el.textContent = fromSettings ? 'ทดสอบและบันทึก' : 'เชื่อมต่อ';
-      });
-    },
-    quickListen: function (id) {
-      state.listenMode = id; state.listenTopic = 'all'; goTo('listen'); playSelection(0);
-    },
-    listenTopic: function (id) {
-      state.listenMode = 'summary'; state.listenTopic = id; goTo('listen'); playSelection(0);
-    },
-    listenQA: function (id) {
-      state.listenMode = 'qa'; state.listenTopic = id; goTo('listen'); playSelection(0);
-    },
-    mode: function (id) { state.listenMode = id; render(); },
-    playAt: function (id) {
-      const i = Number(id);
-      if (player.key === selKey() && player.queue.length) playItem(i); else playSelection(i);
-    },
-    pToggleSel: function () {
-      if (player.key === selKey() && player.queue.length) togglePlay(); else playSelection(0);
-    },
-    pToggle: function () { togglePlay(); },
-    pNext: function () { nextItem(); },
-    pPrev: function () { prevItem(); },
-    pStop: function () { stopAll(); },
-    rate: function (id) {
-      cfg.rate = Number(id) || 1;
-      cfg.rateTouched = true;
-      saveCfg();
-      const chips = document.querySelectorAll('[data-act="rate"]');
-      for (let i = 0; i < chips.length; i++) chips[i].classList.toggle('on', Number(chips[i].getAttribute('data-id')) === cfg.rate);
-      if (player.playing) { player.token++; startSpeak(player.token); }
-    },
-    speakOne: function (id) {
-      const s = list('summaries').find(function (x) { return x.id === id; });
-      if (!s) return;
-      const d = docById(s.doc_id);
-      const t = topicById(sumTopic(s));
-      player.queue = [{ id: s.id, title: d ? d.title : (t ? t.name : ''), text: s.text, chunks: chunkText(s.text) }];
-      player.key = 'one|' + id;
-      playItem(0);
-    },
-    openDoc: function (id) {
-      const d = docById(id);
-      if (!d || !d.open_url) return;
-      if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ตเพื่อเปิดไฟล์ต้นฉบับ'); return; }
-      window.open(d.open_url, '_blank', 'noopener');
-    },
-    install: function () {
-      if (!state.installEvt) return;
-      state.installEvt.prompt();
-      state.installEvt = null;
-      render();
-    },
-    hideInstall: function () { localStorage.setItem(K_HIDE, '1'); render(); },
-    testVoice: function () {
-      const txt = 'สวัสดีครับ นี่คือเสียงอ่านภาษาไทย สำหรับติวสอบหัวหน้าฝ่ายช่าง';
-      player.queue = [{ id: 'test', title: 'ทดสอบเสียง', text: txt, chunks: chunkText(txt) }];
-      player.key = 'test';
-      playItem(0);
-    },
-    clearData: function () {
-      if (!window.confirm('ล้างข้อมูลที่เก็บในเครื่อง? (ข้อมูลใน Google Sheet ไม่หาย โหลดใหม่ได้)')) return;
-      stopAll();
-      localStorage.removeItem(K_DATA);
-      data = null;
-      render();
-    },
-    resetAll: function () {
-      if (!window.confirm('ลบลิงก์ PIN และข้อมูลทั้งหมดในเครื่อง?')) return;
-      stopAll();
-      localStorage.removeItem(K_DATA);
-      localStorage.removeItem(K_CFG);
-      cfg = Object.assign({}, DEFAULT_CFG);
-      data = null;
-      state.view = 'home';
-      render();
-    }
-  };
-
-  const CHANGES = {
-    ann: function (v) { cfg.annId = v; saveCfg(); state.listenTopic = 'all'; render(); },
-    listenTopic: function (v) { state.listenTopic = v; render(); },
-    theme: function (v) { cfg.theme = v; saveCfg(); applyTheme(); },
-    font: function (v) { cfg.font = v; saveCfg(); applyTheme(); },
-    voice: function (v) { cfg.voice = v; saveCfg(); },
-    qaPause: function (v) { cfg.qaPause = Number(v) || 5; saveCfg(); player.key = ''; }
-  };
-
-  document.addEventListener('click', function (e) {
-    const el = e.target.closest ? e.target.closest('[data-act]') : null;
-    if (!el || el.disabled) return;
-    const fn = ACTIONS[el.getAttribute('data-act')];
-    if (fn) fn(el.getAttribute('data-id'), el, e);
+function setup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  Object.keys(SCHEMA).forEach(function (t) { ensureSheet_(ss, SCHEMA[t]); });
+  ['Sheet1', 'ชีต1', 'แผ่น1'].forEach(function (n) {
+    const sh = ss.getSheetByName(n);
+    if (sh && sh.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(sh);
   });
-  document.addEventListener('change', function (e) {
-    const el = e.target;
-    const k = el && el.getAttribute ? el.getAttribute('data-change') : null;
-    if (k && CHANGES[k]) CHANGES[k](el.value, el);
-  });
+  ensureFolders_();
+  seedSettings_();
+  seedSample_();
+  applyValidations_();
+  fillAllIds(true);
+  notify_('ตั้งค่าระบบเรียบร้อย ✅' + NL + NL + 'ขั้นต่อไป: เมนู 📘 ติวช่าง > 2) ตั้ง / เปลี่ยน PIN');
+}
 
-  /* =========== เหตุการณ์ของระบบ =========== */
-  window.addEventListener('online', function () { state.online = true; renderHeader(); refresh(true); });
-  window.addEventListener('offline', function () { state.online = false; renderHeader(); });
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    state.installEvt = e;
-    if (state.view === 'home' && isReady()) render();
-  });
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState !== 'visible' || !player.playing) return;
-    keepAwake(true);
+function ensureSheet_(ss, def) {
+  const sh = ss.getSheetByName(def.sheet) || ss.insertSheet(def.sheet);
+  const labels = def.cols.map(function (c) { return c[1]; });
+  const lastCol = sh.getLastColumn();
+  const existing = lastCol ? sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String) : [];
+  const filled = existing.filter(function (x) { return x !== ''; });
+  if (filled.length === 0) {
+    sh.getRange(1, 1, 1, labels.length).setValues([labels]);
+  } else {
+    const missing = labels.filter(function (l) { return existing.indexOf(l) === -1; });
+    if (missing.length) sh.getRange(1, lastCol + 1, 1, missing.length).setValues([missing]);
+  }
+  sh.getRange(1, 1, 1, sh.getLastColumn())
+    .setFontWeight('bold').setBackground('#1e3a8a').setFontColor('#ffffff');
+  sh.setFrozenRows(1);
+  return sh;
+}
+
+function ensureFolders_() {
+  const props = PropertiesService.getScriptProperties();
+  const root = getOrCreateFolder_(props, 'ROOT_FOLDER_ID', 'ติวหัวหน้าฝ่ายช่าง - ไฟล์', null);
+  getOrCreateFolder_(props, 'DOC_FOLDER_ID', 'เอกสาร', root);
+  getOrCreateFolder_(props, 'TEXT_FOLDER_ID', 'ข้อความที่แปลงแล้ว (ระบบใช้)', root);
+}
+
+function getOrCreateFolder_(props, key, name, parent) {
+  const id = props.getProperty(key);
+  if (id) {
     try {
-      const ss = window.speechSynthesis;
-      ss.resume();
-      if (!ss.speaking && !ss.pending) { player.token++; startSpeak(player.token); }
-    } catch (e) { /* ไม่เป็นไร */ }
+      const f = DriveApp.getFolderById(id);
+      if (!f.isTrashed()) return f;
+    } catch (e) { /* โฟลเดอร์หาย สร้างใหม่ */ }
+  }
+  const folder = parent ? parent.createFolder(name) : DriveApp.createFolder(name);
+  props.setProperty(key, folder.getId());
+  return folder;
+}
+
+function seedSettings_() {
+  const have = readAll_('settings').map(function (s) { return String(s.key); });
+  const add = DEFAULT_SETTINGS
+    .filter(function (s) { return have.indexOf(s[0]) === -1; })
+    .map(function (s) { return { key: s[0], value: s[1], note: s[2] }; });
+  insertMany_('settings', add);
+}
+
+function seedSample_() {
+  if (readAll_('topics').length) return;
+  const ann = {
+    name: 'ตัวอย่าง: ประกาศสรรหาหัวหน้าฝ่ายช่าง (แก้ไขได้)',
+    year: new Date().getFullYear() + 543, agency: 'ก.ท.', active: 'ใช่'
+  };
+  insertMany_('announcements', [ann]);
+  const topics = [
+    { name: 'กฎหมายที่เกี่ยวข้อง', description: 'พ.ร.บ.เทศบาล กฎหมายควบคุมอาคาร ฯลฯ', order: 1, active: 'ใช่' },
+    { name: 'หลักปรัชญาของเศรษฐกิจพอเพียง', description: '3 ห่วง 2 เงื่อนไข', order: 2, active: 'ใช่' },
+    { name: 'การจัดซื้อจัดจ้างและการบริหารพัสดุ', description: 'พ.ร.บ. และระเบียบพัสดุ', order: 3, active: 'ใช่' }
+  ];
+  insertMany_('topics', topics);
+  insertMany_('annTopics', topics.map(function (t) {
+    return { announcement_id: ann.id, topic_id: t.id };
+  }));
+  const base = { difficulty: 'ง่าย', source: 'ตัวอย่าง', status: 'ใช้งาน', attempts: 0, wrongs: 0, created_at: new Date() };
+  insertMany_('questions', [
+    Object.assign({}, base, {
+      topic_id: topics[0].id,
+      question: 'กฎหมายว่าด้วยการควบคุมอาคารฉบับหลักของประเทศไทยคือข้อใด',
+      a: 'พ.ร.บ.ควบคุมอาคาร พ.ศ. 2522', b: 'พ.ร.บ.การผังเมือง พ.ศ. 2562',
+      c: 'พ.ร.บ.การสาธารณสุข พ.ศ. 2535', d: 'พ.ร.บ.ทางหลวง พ.ศ. 2535', answer: 'ก',
+      explanation: 'กฎหมายหลักด้านการควบคุมอาคารคือ พ.ร.บ.ควบคุมอาคาร พ.ศ. 2522 และฉบับแก้ไขเพิ่มเติม',
+      reference: 'พ.ร.บ.ควบคุมอาคาร พ.ศ. 2522'
+    }),
+    Object.assign({}, base, {
+      topic_id: topics[1].id,
+      question: 'ข้อใด "ไม่ใช่" หนึ่งใน 3 ห่วงของหลักปรัชญาของเศรษฐกิจพอเพียง',
+      a: 'ความพอประมาณ', b: 'ความมีเหตุผล', c: 'การมีภูมิคุ้มกันที่ดีในตัว', d: 'ความรู้', answer: 'ง',
+      explanation: '3 ห่วง คือ ความพอประมาณ ความมีเหตุผล และการมีภูมิคุ้มกันที่ดีในตัว ส่วน "ความรู้" และ "คุณธรรม" เป็น 2 เงื่อนไข',
+      reference: 'หลักปรัชญาของเศรษฐกิจพอเพียง'
+    }),
+    Object.assign({}, base, {
+      topic_id: topics[2].id,
+      question: 'กฎหมายหลักที่ใช้กับการจัดซื้อจัดจ้างของหน่วยงานของรัฐ รวมถึง อปท. ในปัจจุบันคือข้อใด',
+      a: 'ระเบียบกระทรวงมหาดไทยว่าด้วยการพัสดุของหน่วยการบริหารราชการส่วนท้องถิ่น พ.ศ. 2535',
+      b: 'พ.ร.บ.การจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560',
+      c: 'ระเบียบสำนักนายกรัฐมนตรีว่าด้วยการพัสดุ พ.ศ. 2535',
+      d: 'พ.ร.บ.วิธีการงบประมาณ พ.ศ. 2502', answer: 'ข',
+      explanation: 'ปัจจุบันใช้ พ.ร.บ.การจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560 และระเบียบกระทรวงการคลังที่ออกตาม พ.ร.บ. นี้',
+      reference: 'พ.ร.บ.การจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560'
+    })
+  ]);
+}
+
+function applyValidations_() {
+  function list(t, k, items) {
+    const r = colRange_(t, k);
+    if (!r) return;
+    r.setDataValidation(SpreadsheetApp.newDataValidation()
+      .requireValueInList(items, true).setAllowInvalid(false).build());
+  }
+  function ref(t, k, refT) {
+    const r = colRange_(t, k);
+    const src = colRange_(refT, 'id');
+    if (!r || !src) return;
+    r.setDataValidation(SpreadsheetApp.newDataValidation()
+      .requireValueInRange(src, true).setAllowInvalid(true).build());
+  }
+  list('announcements', 'active', LISTS.yesno);
+  list('topics', 'active', LISTS.yesno);
+  list('questions', 'answer', LISTS.answer);
+  list('questions', 'difficulty', LISTS.difficulty);
+  list('questions', 'status', LISTS.qstatus);
+  list('documents', 'type', LISTS.doctype);
+  list('documents', 'status', LISTS.docstatus);
+  ref('annTopics', 'announcement_id', 'announcements');
+  ref('annTopics', 'topic_id', 'topics');
+  ref('documents', 'topic_id', 'topics');
+  ref('questions', 'topic_id', 'topics');
+  ref('summaries', 'topic_id', 'topics');
+  ref('summaries', 'doc_id', 'documents');
+}
+
+function colRange_(table, key) {
+  const sh = sheetOf_(table);
+  const map = headerMap_(sh, SCHEMA[table]);
+  if (map[key] === undefined) return null;
+  return sh.getRange(2, map[key] + 1, Math.max(sh.getMaxRows() - 1, 1), 1);
+}
+
+function setPinUi() {
+  const ui = SpreadsheetApp.getUi();
+  const res = ui.prompt('ตั้ง PIN', 'ใส่ตัวเลข 4 ถึง 8 หลัก (ใช้ปลดล็อกแอปและหน้าแอดมิน)', ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+  const pin = res.getResponseText().trim();
+  if (pin.length < 4 || pin.length > 8 || !isDigits_(pin)) {
+    ui.alert('PIN ต้องเป็นตัวเลข 4 ถึง 8 หลัก');
+    return;
+  }
+  PropertiesService.getScriptProperties().setProperty('APP_PIN', pin);
+  ui.alert('ตั้ง PIN เรียบร้อย ✅');
+}
+
+function fillAllIds(silent) {
+  let n = 0;
+  Object.keys(SCHEMA).forEach(function (t) { if (SCHEMA[t].prefix) n += fillIds_(t); });
+  if (silent !== true) notify_('เติมรหัสแล้ว ' + n + ' แถว');
+  return n;
+}
+
+function showStatus() {
+  const props = PropertiesService.getScriptProperties();
+  const lines = Object.keys(SCHEMA).map(function (t) {
+    return '• ' + SCHEMA[t].sheet + ': ' + readAll_(t).length + ' แถว';
   });
-  if (window.matchMedia) {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mq.addEventListener) mq.addEventListener('change', applyTheme);
-    else if (mq.addListener) mq.addListener(applyTheme);
-  }
-  if (hasTTS()) {
-    window.speechSynthesis.onvoiceschanged = function () { if (state.view === 'settings') render(); };
-  }
+  lines.push('');
+  lines.push('เวอร์ชันหลังบ้าน: ' + APP_VERSION);
+  lines.push('PIN: ' + (props.getProperty('APP_PIN') ? 'ตั้งแล้ว ✅' : 'ยังไม่ตั้ง ❌'));
+  let url = '';
+  try { url = ScriptApp.getService().getUrl() || ''; } catch (e) { url = ''; }
+  lines.push('ลิงก์ Web App: ' + (url || 'ยังไม่ได้ Deploy'));
+  const fid = props.getProperty('ROOT_FOLDER_ID');
+  lines.push('โฟลเดอร์ไฟล์: ' + (fid ? 'https://drive.google.com/drive/folders/' + fid : 'ยังไม่สร้าง'));
+  notify_(lines.join(NL));
+}
 
-  function registerSW() {
-    if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
-    navigator.serviceWorker.register('./sw.js').then(function (reg) {
-      reg.addEventListener('updatefound', function () {
-        const nw = reg.installing;
-        if (!nw) return;
-        nw.addEventListener('statechange', function () {
-          if (nw.state === 'activated' && hadController) toast('อัปเดตแอปแล้ว ปิดแล้วเปิดใหม่เพื่อใช้เวอร์ชันล่าสุด');
-        });
-      });
-    }).catch(function () { /* ไม่เป็นไร */ });
-  }
+function notify_(msg) {
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { Logger.log(msg); }
+}
 
-  /* =========== เริ่มทำงาน =========== */
-  makeAppleIcon();
-  render();
-  if (cfg.apiUrl && cfg.pin) refresh(true);
-  registerSW();
-})();
-</script>
-</body>
-</html>
+/* =====================================================
+ * ส่วนที่ 2 : อ่าน / เขียนข้อมูลในชีต
+ * ===================================================== */
+function sheetOf_(table) {
+  const def = SCHEMA[table];
+  if (!def) throw new Error('ไม่รู้จักตาราง: ' + table);
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(def.sheet);
+  if (!sh) throw new Error('ไม่พบชีต "' + def.sheet + '" กรุณารันเมนู ตั้งค่าระบบครั้งแรก');
+  return sh;
+}
+
+function tableBySheet_(name) {
+  const keys = Object.keys(SCHEMA);
+  for (let i = 0; i < keys.length; i++) {
+    if (SCHEMA[keys[i]].sheet === name) return keys[i];
+  }
+  return null;
+}
+
+function headerMap_(sh, def) {
+  const head = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0]
+    .map(function (h) { return String(h).trim(); });
+  const map = {};
+  def.cols.forEach(function (c) {
+    let i = head.indexOf(c[1]);
+    if (i === -1) i = head.indexOf(c[0]);
+    if (i > -1) map[c[0]] = i;
+  });
+  return map;
+}
+
+function readAll_(table) {
+  const def = SCHEMA[table];
+  const sh = sheetOf_(table);
+  const map = headerMap_(sh, def);
+  const last = sh.getLastRow();
+  if (last < 2) return [];
+  const values = sh.getRange(2, 1, last - 1, sh.getLastColumn()).getValues();
+  const out = [];
+  values.forEach(function (row, i) {
+    const empty = row.every(function (v) { return v === '' || v === null; });
+    if (empty) return;
+    const o = { _row: i + 2 };
+    Object.keys(map).forEach(function (k) { o[k] = normVal_(row[map[k]]); });
+    out.push(o);
+  });
+  return out;
+}
+
+function readCol_(sh, idx) {
+  const last = sh.getLastRow();
+  if (last < 2 || idx === undefined) return [];
+  return sh.getRange(2, idx + 1, last - 1, 1).getValues().map(function (r) { return r[0]; });
+}
+
+function writeCol_(sh, idx, arr) {
+  if (!arr.length || idx === undefined) return;
+  sh.getRange(2, idx + 1, arr.length, 1).setValues(arr.map(function (v) { return [v]; }));
+}
+
+function insertMany_(table, records) {
+  if (!records || !records.length) return [];
+  const def = SCHEMA[table];
+  const sh = sheetOf_(table);
+  const map = headerMap_(sh, def);
+  const width = sh.getLastColumn();
+  let max = def.prefix ? maxIdNum_(readCol_(sh, map.id), def.prefix) : 0;
+  const rows = records.map(function (rec) {
+    if (def.prefix && !rec.id) { max++; rec.id = makeId_(def.prefix, max); }
+    const row = new Array(width).fill('');
+    Object.keys(map).forEach(function (k) {
+      if (rec[k] !== undefined && rec[k] !== null) row[map[k]] = toCell_(rec[k]);
+    });
+    return row;
+  });
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, width).setValues(rows);
+  return records;
+}
+
+function updateRecord_(table, id, patch) {
+  const def = SCHEMA[table];
+  const sh = sheetOf_(table);
+  const map = headerMap_(sh, def);
+  const ids = readCol_(sh, map.id);
+  let idx = -1;
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i]) === String(id)) { idx = i; break; }
+  }
+  if (idx === -1) return false;
+  Object.keys(patch).forEach(function (k) {
+    if (k === 'id' || map[k] === undefined || patch[k] === undefined) return;
+    sh.getRange(idx + 2, map[k] + 1).setValue(toCell_(patch[k]));
+  });
+  return true;
+}
+
+function deleteWhere_(table, key, value) {
+  const sh = sheetOf_(table);
+  const map = headerMap_(sh, SCHEMA[table]);
+  if (map[key] === undefined) return 0;
+  const col = readCol_(sh, map[key]);
+  let n = 0;
+  for (let i = col.length - 1; i >= 0; i--) {
+    if (String(col[i]) === String(value)) { sh.deleteRow(i + 2); n++; }
+  }
+  return n;
+}
+
+function fillIds_(table, fromRow, toRow) {
+  const def = SCHEMA[table];
+  const sh = sheetOf_(table);
+  const map = headerMap_(sh, def);
+  const last = sh.getLastRow();
+  if (last < 2 || map.id === undefined) return 0;
+  const values = sh.getRange(1, 1, last, sh.getLastColumn()).getValues();
+  const idc = map.id;
+  let max = maxIdNum_(values.slice(1).map(function (r) { return r[idc]; }), def.prefix);
+  const a = Math.max(2, fromRow || 2);
+  const b = Math.min(last, toRow || last);
+  let n = 0;
+  for (let r = a; r <= b; r++) {
+    const row = values[r - 1];
+    if (String(row[idc]).trim()) continue;
+    const hasData = row.some(function (v, i) { return i !== idc && String(v).trim() !== ''; });
+    if (!hasData) continue;
+    max++;
+    sh.getRange(r, idc + 1).setValue(makeId_(def.prefix, max));
+    n++;
+  }
+  return n;
+}
+
+function readSettings_() {
+  const o = {};
+  readAll_('settings').forEach(function (s) { if (s.key) o[String(s.key)] = s.value; });
+  return o;
+}
+
+function maxIdNum_(ids, prefix) {
+  let max = 0;
+  ids.forEach(function (v) {
+    const s = String(v).trim();
+    if (s.indexOf(prefix) !== 0) return;
+    const rest = s.slice(prefix.length);
+    if (!rest || !isDigits_(rest)) return;
+    max = Math.max(max, Number(rest));
+  });
+  return max;
+}
+
+function isDigits_(s) {
+  return String(s).split('').every(function (ch) { return ch >= '0' && ch <= '9'; });
+}
+
+function makeId_(prefix, n) {
+  return prefix + String(n).padStart(4, '0');
+}
+
+function normVal_(v) {
+  return v instanceof Date ? v.toISOString() : v;
+}
+
+function toCell_(v) {
+  if (v instanceof Date) return v;
+  if (Array.isArray(v)) return v.join(',');
+  if (v !== null && typeof v === 'object') return JSON.stringify(v);
+  if (typeof v === 'boolean') return v ? 'ใช่' : 'ไม่';
+  if (typeof v === 'string') {
+    const first = v.charAt(0);
+    if (first === '=' || first === '+') v = "'" + v;
+    if (v.length > 49000) v = v.slice(0, 49000);
+  }
+  return v;
+}
+
+function isActive_(v) {
+  if (v === false) return false;
+  const s = String(v).trim().toLowerCase();
+  return ['false', 'ไม่', 'no', '0'].indexOf(s) === -1;
+}
+
+function clean_(o) {
+  delete o._row;
+  return o;
+}
+
+/* =====================================================
+ * ส่วนที่ 3 : API ที่แอปเรียกใช้
+ * ===================================================== */
+const EDITABLE = ['announcements', 'topics', 'annTopics', 'documents', 'summaries', 'questions'];
+
+function getActions_() {
+  return {
+    ping:            { fn: apiPing_, auth: false, get: true },
+    checkPin:        { fn: function () { return { valid: true }; }, get: true },
+    bootstrap:       { fn: apiBootstrap_, get: true },
+    saveAttempts:    { fn: apiSaveAttempts_, write: true },
+    flagQuestion:    { fn: apiFlagQuestion_, write: true },
+    clearHistory:    { fn: apiClearHistory_, write: true },
+    save:            { fn: apiSave_, write: true },
+    remove:          { fn: apiRemove_, write: true },
+    setLinks:        { fn: apiSetLinks_, write: true },
+    importQuestions: { fn: apiImportQuestions_, write: true },
+    uploadFile:      { fn: apiUploadFile_, write: true },
+    saveSettings:    { fn: apiSaveSettings_, write: true }
+  };
+}
+
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  const action = p.action || 'ping';
+  const def = getActions_()[action];
+  if (def && !def.get) return json_({ ok: false, code: 'METHOD', error: 'คำสั่งนี้ต้องเรียกแบบ POST' });
+  return json_(route_(action, p));
+}
+
+function doPost(e) {
+  let body;
+  try {
+    body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+  } catch (err) {
+    return json_({ ok: false, code: 'BAD_JSON', error: 'ข้อมูลที่ส่งมาไม่ถูกต้อง' });
+  }
+  return json_(route_(body.action, body));
+}
+
+function route_(action, p) {
+  try {
+    const def = getActions_()[action];
+    if (!def) throw apiErr_('BAD_ACTION', 'ไม่รู้จักคำสั่ง: ' + action);
+    if (def.auth !== false) checkPin_(p.pin);
+    let data;
+    if (def.write) {
+      const lock = LockService.getScriptLock();
+      if (!lock.tryLock(30000)) throw apiErr_('BUSY', 'ระบบกำลังทำงานอื่นอยู่ ลองใหม่อีกครั้ง');
+      try { data = def.fn(p); } finally { lock.releaseLock(); }
+    } else {
+      data = def.fn(p);
+    }
+    return { ok: true, data: data };
+  } catch (err) {
+    return { ok: false, code: err.code || 'ERROR', error: String(err.message || err) };
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function apiErr_(code, msg) {
+  const e = new Error(msg);
+  e.code = code;
+  return e;
+}
+
+function checkPin_(pin) {
+  const real = PropertiesService.getScriptProperties().getProperty('APP_PIN');
+  if (!real) throw apiErr_('NO_PIN', 'ยังไม่ได้ตั้ง PIN (เมนู 📘 ติวช่าง > ตั้ง PIN)');
+  const cache = CacheService.getScriptCache();
+  const fails = Number(cache.get('pin_fails') || 0);
+  if (fails >= 10) throw apiErr_('LOCKED', 'ใส่ PIN ผิดหลายครั้ง กรุณารอ 10 นาที');
+  if (String(pin || '') !== real) {
+    cache.put('pin_fails', String(fails + 1), 600);
+    throw apiErr_('AUTH', 'PIN ไม่ถูกต้อง');
+  }
+}
+
+function apiPing_() {
+  return { app: 'ติวหัวหน้าฝ่ายช่าง', version: APP_VERSION, time: new Date().toISOString() };
+}
+
+function apiBootstrap_(p) {
+  const all = p.all === true || p.all === 'true';
+  function num(v) { return (v === '' || v === null || isNaN(Number(v))) ? 9999 : Number(v); }
+  const topics = readAll_('topics')
+    .filter(function (t) { return all || isActive_(t.active); })
+    .sort(function (a, b) { return num(a.order) - num(b.order); });
+  const anns = readAll_('announcements').filter(function (a) { return all || isActive_(a.active); });
+  const docs = readAll_('documents').map(function (d) {
+    d.open_url = d.url || (d.file_id ? 'https://drive.google.com/file/d/' + d.file_id + '/view' : '');
+    return d;
+  });
+  const sums = readAll_('summaries').sort(function (a, b) {
+    return String(a.doc_id).localeCompare(String(b.doc_id)) || num(a.order) - num(b.order);
+  });
+  const qs = readAll_('questions').filter(function (q) {
+    return all || ((q.status === '' || q.status === 'ใช้งาน') && q.question && q.answer);
+  });
+  const hist = readAll_('history').slice(-300).map(function (h) { delete h.detail; return h; });
+  return {
+    version: APP_VERSION,
+    serverTime: new Date().toISOString(),
+    settings: readSettings_(),
+    announcements: anns.map(clean_),
+    topics: topics.map(clean_),
+    links: readAll_('annTopics').map(clean_),
+    documents: docs.map(clean_),
+    summaries: sums.map(clean_),
+    questions: qs.map(clean_),
+    history: hist.map(clean_)
+  };
+}
+
+function apiSaveAttempts_(p) {
+  const attempts = Array.isArray(p.attempts) ? p.attempts : (p.attempt ? [p.attempt] : []);
+  if (!attempts.length) return { saved: 0, skipped: 0 };
+  const existing = {};
+  readAll_('history').forEach(function (h) { existing[String(h.id)] = true; });
+  const toSave = [];
+  const stat = {};
+  attempts.forEach(function (a) {
+    if (!a || !a.id || existing[String(a.id)]) return;
+    existing[String(a.id)] = true;
+    const answers = Array.isArray(a.answers) ? a.answers : [];
+    const correct = answers.filter(function (x) { return x.correct; }).length;
+    const wrong = answers.filter(function (x) { return !x.correct; }).map(function (x) { return x.qid; });
+    answers.forEach(function (x) {
+      if (!stat[x.qid]) stat[x.qid] = { n: 0, w: 0, last: '' };
+      const s = stat[x.qid];
+      s.n++;
+      if (!x.correct) s.w++;
+      s.last = x.correct ? 'ถูก' : 'ผิด';
+    });
+    toSave.push({
+      id: a.id,
+      date: a.date ? new Date(a.date) : new Date(),
+      mode: a.mode || 'ฝึกทำ',
+      topic_ids: (a.topic_ids || []).join(','),
+      total: answers.length,
+      correct: correct,
+      score: answers.length ? Math.round(correct * 1000 / answers.length) / 10 : 0,
+      time_used: a.time_used || 0,
+      time_limit: a.time_limit || '',
+      wrong_ids: wrong.join(','),
+      detail: JSON.stringify(answers.map(function (x) { return [x.qid, x.chosen || '', x.correct ? 1 : 0]; }))
+    });
+  });
+  insertMany_('history', toSave);
+  updateQuestionStats_(stat);
+  return { saved: toSave.length, skipped: attempts.length - toSave.length };
+}
+
+function updateQuestionStats_(stat) {
+  if (!Object.keys(stat).length) return;
+  const sh = sheetOf_('questions');
+  const map = headerMap_(sh, SCHEMA.questions);
+  const ids = readCol_(sh, map.id);
+  const nCol = readCol_(sh, map.attempts);
+  const wCol = readCol_(sh, map.wrongs);
+  const lCol = readCol_(sh, map.last_result);
+  ids.forEach(function (id, i) {
+    const s = stat[String(id)];
+    if (!s) return;
+    nCol[i] = (Number(nCol[i]) || 0) + s.n;
+    wCol[i] = (Number(wCol[i]) || 0) + s.w;
+    lCol[i] = s.last;
+  });
+  writeCol_(sh, map.attempts, nCol);
+  writeCol_(sh, map.wrongs, wCol);
+  writeCol_(sh, map.last_result, lCol);
+}
+
+function apiFlagQuestion_(p) {
+  const patch = p.unflag
+    ? { status: 'ใช้งาน', flag_reason: '' }
+    : { status: 'ถูกแจ้งผิด', flag_reason: p.reason || '' };
+  if (!updateRecord_('questions', p.id, patch)) throw apiErr_('NOT_FOUND', 'ไม่พบข้อสอบ ' + p.id);
+  return { id: p.id };
+}
+
+// ล้างประวัติการสอบทั้งหมด + รีเซ็ตสถิติรายข้อ (ข้อสอบไม่หาย)
+function apiClearHistory_() {
+  const hs = sheetOf_('history');
+  const last = hs.getLastRow();
+  if (last >= 2) hs.getRange(2, 1, last - 1, hs.getLastColumn()).clearContent();
+  const qs = sheetOf_('questions');
+  const map = headerMap_(qs, SCHEMA.questions);
+  const n = Math.max(qs.getLastRow() - 1, 0);
+  if (n) {
+    writeCol_(qs, map.attempts, new Array(n).fill(0));
+    writeCol_(qs, map.wrongs, new Array(n).fill(0));
+    writeCol_(qs, map.last_result, new Array(n).fill(''));
+  }
+  return { cleared: true };
+}
+
+function apiSave_(p) {
+  if (EDITABLE.indexOf(p.table) === -1) throw apiErr_('FORBIDDEN', 'แก้ไขตารางนี้ไม่ได้');
+  const rec = Object.assign({}, p.record || {});
+  if (p.table === 'questions' && rec.answer !== undefined) rec.answer = normalizeAnswer_(rec.answer);
+  if (rec.id && updateRecord_(p.table, rec.id, rec)) return { id: rec.id, updated: true };
+  if (p.table === 'questions') {
+    Object.assign(rec, {
+      status: rec.status || 'ใช้งาน', source: rec.source || 'แอดมิน',
+      difficulty: rec.difficulty || 'กลาง', attempts: 0, wrongs: 0, created_at: new Date()
+    });
+  }
+  if ((p.table === 'topics' || p.table === 'announcements') && rec.active === undefined) rec.active = 'ใช่';
+  if (p.table === 'documents') rec.updated_at = new Date();
+  insertMany_(p.table, [rec]);
+  return { id: rec.id, created: true };
+}
+
+function apiRemove_(p) {
+  if (EDITABLE.indexOf(p.table) === -1) throw apiErr_('FORBIDDEN', 'ลบจากตารางนี้ไม่ได้');
+  if (!p.id) throw apiErr_('BAD_INPUT', 'ไม่ได้ระบุรหัส');
+  if (!deleteWhere_(p.table, 'id', p.id)) throw apiErr_('NOT_FOUND', 'ไม่พบรายการ ' + p.id);
+  if (p.table === 'documents') deleteWhere_('summaries', 'doc_id', p.id);
+  if (p.table === 'topics') deleteWhere_('annTopics', 'topic_id', p.id);
+  if (p.table === 'announcements') deleteWhere_('annTopics', 'announcement_id', p.id);
+  return { removed: p.id };
+}
+
+function apiSetLinks_(p) {
+  if (!p.announcement_id) throw apiErr_('BAD_INPUT', 'ไม่ได้ระบุประกาศ');
+  deleteWhere_('annTopics', 'announcement_id', p.announcement_id);
+  const recs = (p.topic_ids || []).map(function (t) {
+    return { announcement_id: p.announcement_id, topic_id: t };
+  });
+  insertMany_('annTopics', recs);
+  return { count: recs.length };
+}
+
+function apiImportQuestions_(p) {
+  const list = Array.isArray(p.questions) ? p.questions : [];
+  const ok = [];
+  const rejected = [];
+  list.forEach(function (q, i) {
+    const ans = normalizeAnswer_(q.answer);
+    if (!q.question || !q.a || !q.b || !q.c || !q.d || !ans) {
+      rejected.push({ index: i + 1, reason: 'ข้อมูลไม่ครบ (โจทย์ ตัวเลือก ก-ง หรือเฉลย)' });
+      return;
+    }
+    ok.push(Object.assign({}, q, {
+      id: '', answer: ans, topic_id: q.topic_id || p.topic_id || '',
+      difficulty: q.difficulty || 'กลาง', source: q.source || p.source || 'นำเข้า',
+      status: 'ใช้งาน', attempts: 0, wrongs: 0, created_at: new Date()
+    }));
+  });
+  insertMany_('questions', ok);
+  return { imported: ok.length, rejected: rejected, ids: ok.map(function (q) { return q.id; }) };
+}
+
+function apiUploadFile_(p) {
+  if (!p.base64 || !p.filename) throw apiErr_('BAD_INPUT', 'ไม่มีไฟล์');
+  const folderId = PropertiesService.getScriptProperties().getProperty('DOC_FOLDER_ID');
+  const folder = DriveApp.getFolderById(folderId);
+  let b64 = String(p.base64);
+  if (b64.indexOf('data:') === 0) b64 = b64.slice(b64.indexOf(',') + 1);
+  const blob = Utilities.newBlob(Utilities.base64Decode(b64),
+    p.mimeType || 'application/octet-stream', p.filename);
+  const file = folder.createFile(blob);
+  const rec = {
+    topic_id: p.topic_id || '', title: p.title || p.filename,
+    type: typeFromMime_(blob.getContentType()), url: file.getUrl(), file_id: file.getId(),
+    status: 'รอประมวลผล', updated_at: new Date()
+  };
+  insertMany_('documents', [rec]);
+  return rec;
+}
+
+function apiSaveSettings_(p) {
+  const s = p.settings || {};
+  const sh = sheetOf_('settings');
+  const map = headerMap_(sh, SCHEMA.settings);
+  const keys = readCol_(sh, map.key).map(String);
+  const add = [];
+  Object.keys(s).forEach(function (k) {
+    const i = keys.indexOf(k);
+    if (i > -1) sh.getRange(i + 2, map.value + 1).setValue(s[k]);
+    else add.push({ key: k, value: s[k] });
+  });
+  insertMany_('settings', add);
+  return readSettings_();
+}
+
+function normalizeAnswer_(v) {
+  const s = String(v || '').toLowerCase().split('')
+    .filter(function (ch) { return ['(', ')', '.', ' '].indexOf(ch) === -1; })
+    .join('').trim();
+  const m = {
+    'ก': 'ก', 'a': 'ก', '1': 'ก',
+    'ข': 'ข', 'b': 'ข', '2': 'ข',
+    'ค': 'ค', 'c': 'ค', '3': 'ค',
+    'ง': 'ง', 'd': 'ง', '4': 'ง'
+  };
+  return m[s] || '';
+}
+
+function typeFromMime_(mime) {
+  mime = String(mime || '');
+  if (mime === 'application/pdf') return 'PDF';
+  if (mime.indexOf('image/') === 0) return 'รูปภาพ';
+  if (mime.indexOf('text/') === 0) return 'ข้อความ';
+  return 'เอกสาร';
+}
+
+/* =====================================================
+ * ส่วนที่ 4 : ฟังก์ชันทดสอบ
+ * ===================================================== */
+function testApi() {
+  const pin = PropertiesService.getScriptProperties().getProperty('APP_PIN');
+  const res = route_('bootstrap', { pin: pin });
+  if (!res.ok) { Logger.log('❌ ' + res.error); return; }
+  const d = res.data;
+  Logger.log('✅ เชื่อมต่อสำเร็จ v' + d.version + ' | ประกาศ ' + d.announcements.length +
+    ' | หัวข้อ ' + d.topics.length + ' | เอกสาร ' + d.documents.length +
+    ' | ข้อสอบ ' + d.questions.length + ' | ประวัติ ' + d.history.length);
+}
+
+function testSaveAttempt() {
+  const pin = PropertiesService.getScriptProperties().getProperty('APP_PIN');
+  const res = route_('bootstrap', { pin: pin });
+  if (!res.ok) { Logger.log('❌ ' + res.error); return; }
+  const qs = res.data.questions.slice(0, 3);
+  const topicIds = [];
+  qs.forEach(function (q) { if (topicIds.indexOf(q.topic_id) === -1) topicIds.push(q.topic_id); });
+  const attempt = {
+    id: 'TEST-' + Date.now(), mode: 'ทดสอบระบบ', time_used: 42, topic_ids: topicIds,
+    answers: qs.map(function (q, i) {
+      const chosen = i === 0 ? q.answer : 'ก';
+      return { qid: q.id, chosen: chosen, correct: chosen === q.answer };
+    })
+  };
+  Logger.log(JSON.stringify(route_('saveAttempts', { pin: pin, attempts: [attempt] })));
+}
