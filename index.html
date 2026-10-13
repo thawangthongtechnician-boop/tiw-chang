@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ติวช่าง">
+<title>ติวหัวหน้าฝ่ายช่าง</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" id="appleIcon" href="icon.svg">
+<style>
+:root{--primary:#1e3a8a;--accent:#2563eb;--bg:#f1f5f9;--card:#ffffff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--soft:#eef2ff;--bad:#dc2626;--r:16px;--tab:64px;--side:96px}
+[data-theme="dark"]{--bg:#0b1220;--card:#121a2b;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--soft:#1b2540;--accent:#60a5fa}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Sukhumvit Set","Thonburi","Noto Sans Thai","Leelawadee UI",Tahoma,sans-serif;font-size:1rem;line-height:1.65;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--primary);color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 14px 8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;min-width:0}
+.brand .title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;align-items:center;gap:6px}
+.topbar .icon-btn{color:#fff;background:rgba(255,255,255,.14)}
+.pill{font-size:.75rem;padding:2px 10px;border-radius:999px;background:#f59e0b;color:#111;font-weight:700}
+main{max-width:980px;margin:0 auto;padding:16px 14px calc(var(--tab) + 24px + env(safe-area-inset-bottom))}
+body.has-mini main{padding-bottom:calc(var(--tab) + 100px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 8px;font-size:1.25rem}
+.narrow{max-width:520px;margin:24px auto}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.mt{margin-top:12px}
+.sec{margin:20px 4px 10px;font-size:1.05rem}
+.row{display:flex;gap:10px;align-items:center}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:.9rem}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:var(--soft);cursor:pointer;font-size:1.15rem;flex:none}
+.icon-btn.sm{width:36px;height:36px;font-size:1rem}
+.icon-btn.lg{width:52px;height:52px;font-size:1.3rem}
+.spin span{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.field{display:block;margin:12px 0}
+.field>span{display:block;font-size:.9rem;color:var(--muted);margin-bottom:4px}
+.field input,.field select,.big-select{width:100%;min-height:46px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
+.big-select{font-weight:700;font-size:1.05rem;margin:4px 0 12px}
+.msg{min-height:1.2em;margin:8px 0;font-size:.9rem}
+.msg.bad{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--soft);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:1.5rem;color:var(--accent)}
+.stat span{font-size:.85rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tcard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:var(--r);padding:14px;cursor:pointer;width:100%}
+.tname{font-weight:700;font-size:1.05rem}
+.tdesc{color:var(--muted);font-size:.9rem}
+.tmeta{display:flex;gap:14px;font-size:.85rem;color:var(--muted);margin-top:auto}
+.back{border:0;background:none;color:var(--accent);font-weight:700;padding:4px 0 12px;cursor:pointer;font-size:1rem}
+.doc-head{display:flex;gap:12px;align-items:center}
+.dicon{font-size:1.6rem}
+.dtitle{font-weight:600}
+.badge{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:999px;background:var(--soft)}
+.badge.ok{background:#dcfce7;color:#166534}
+.badge.wait{background:#fef3c7;color:#92400e}
+.badge.bad{background:#fee2e2;color:#991b1b}
+details.sums{margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
+details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0}
+.slist{list-style:none;margin:6px 0 0;padding:0}
+.slist li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.slist li:last-child{border-bottom:0}
+.num,.qn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--soft);display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r);margin-bottom:14px}
+.banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:4px;gap:4px;margin:8px 0}
+.seg button{flex:1;min-height:40px;border:0;border-radius:9px;background:transparent;cursor:pointer;font-weight:600}
+.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12);color:var(--accent)}
+.player{margin-top:10px;padding:14px;border-radius:14px;background:var(--soft)}
+.pnow{text-align:center;font-weight:600;min-height:1.6em}
+.pctrl{display:flex;justify-content:center;align-items:center;gap:14px;margin:10px 0}
+.play{width:68px;height:68px;border-radius:50%;border:0;background:var(--primary);color:#fff;font-size:1.6rem;cursor:pointer}
+.rates{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px;min-height:34px;cursor:pointer;font-size:.9rem}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.qlist{display:flex;flex-direction:column;gap:6px}
+.qitem{display:flex;gap:10px;text-align:left;padding:10px;border-radius:12px;border:1px solid transparent;background:transparent;cursor:pointer;width:100%}
+.qitem.on{background:var(--soft);border-color:var(--accent)}
+.qitem.on .qn{background:var(--accent);color:#fff}
+.qt{display:block;font-size:.8rem;color:var(--muted)}
+.qx{display:block}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:var(--tab);border:0;background:none;cursor:pointer;color:var(--muted)}
+.tab .ti{font-size:1.3rem;line-height:1}
+.tab .tl{font-size:.72rem}
+.tab.on{color:var(--accent);font-weight:700}
+#mini{position:fixed;left:10px;right:10px;bottom:calc(var(--tab) + 8px + env(safe-area-inset-bottom));z-index:29;display:flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border-radius:16px;padding:6px 8px 6px 14px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:760px;margin:0 auto}
+#mini .icon-btn{background:rgba(255,255,255,.15);color:#fff}
+.mtext{flex:1;min-width:0;text-align:left;border:0;background:none;color:#fff;cursor:pointer;display:flex;flex-direction:column}
+.mtext b,.mtext span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtext span{font-size:.8rem;opacity:.85}
+#toast{position:fixed;left:50%;bottom:calc(var(--tab) + 100px);transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;max-width:90vw;text-align:center;font-size:.92rem}
+#toast.show{opacity:1}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:900px){
+  body.has-tabs{padding-left:var(--side)}
+  .tabbar{top:0;bottom:0;right:auto;width:var(--side);flex-direction:column;justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 12px);border-top:0;border-right:1px solid var(--line)}
+  .tab{flex:none;height:80px}
+  main,body.has-mini main{padding-bottom:110px}
+  #mini{left:calc(var(--side) + 16px);bottom:16px}
+  #toast{bottom:100px}
+}
+</style>
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<main id="main"></main>
+<div id="mini" hidden></div>
+<nav class="tabbar" id="tabbar" hidden></nav>
+<div id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const APP_VERSION = '2.0.0';
+  const NL = String.fromCharCode(10);
+  const K_CFG = 'tiw_cfg';
+  const K_DATA = 'tiw_data';
+  const K_HIDE = 'tiw_hide_install';
+  const LETTERS = ['ก', 'ข', 'ค', 'ง'];
+  const KEYS = ['a', 'b', 'c', 'd'];
+
+  const DEFAULT_CFG = { apiUrl: '', pin: '', annId: '', theme: 'auto', font: 'normal',
+    rate: 1, rateTouched: false, voice: '', qaPause: 5 };
+  let cfg = Object.assign({}, DEFAULT_CFG, loadJSON(K_CFG, {}));
+  let data = loadJSON(K_DATA, null);
+  const state = { view: 'home', topicId: '', listenTopic: 'all', listenMode: 'summary',
+    syncing: false, online: navigator.onLine, installEvt: null };
+  const player = { queue: [], key: '', idx: 0, chunkIdx: 0, playing: false, done: false, token: 0, timer: null, utter: null };
+  let wakeLock = null;
+  let toastTimer = null;
+  const hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+
+  /* =========== ตัวช่วยทั่วไป =========== */
+  function byId(id) { return document.getElementById(id); }
+  function loadJSON(k, d) {
+    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; }
+  }
+  function saveJSON(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+    catch (e) { toast('พื้นที่เก็บข้อมูลในเครื่องเต็ม'); return false; }
+  }
+  function saveCfg() { saveJSON(K_CFG, cfg); }
+  function esc(s) {
+    return String(s === undefined || s === null ? '' : s)
+      .split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;')
+      .split('"').join('&quot;').split("'").join('&#39;');
+  }
+  function br(s) { return esc(s).split(NL).join('<br>'); }
+  function shortText(s, n) {
+    s = String(s || '').split(NL).join(' ');
+    return s.length > n ? s.slice(0, n) + '…' : s;
+  }
+  function fmtDate(v) {
+    if (!v) return '-';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return String(v);
+    return d.toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+  function toast(msg) {
+    const t = byId('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+  function isIOS() {
+    const ua = navigator.userAgent;
+    return ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1 ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  function isStandalone() {
+    return navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  }
+  function isReady() { return !!(cfg.apiUrl && cfg.pin && data); }
+
+  /* =========== ข้อมูล =========== */
+  function list(name) { return (data && Array.isArray(data[name])) ? data[name] : []; }
+  function anns() { return list('announcements'); }
+  function currentAnn() {
+    const a = anns();
+    return a.find(function (x) { return x.id === cfg.annId; }) || a[0] || null;
+  }
+  function topicsOfAnn() {
+    const all = list('topics');
+    const ann = currentAnn();
+    if (!ann) return all;
+    const ids = list('links').filter(function (l) { return l.announcement_id === ann.id; })
+      .map(function (l) { return l.topic_id; });
+    if (!ids.length) return all;
+    return all.filter(function (t) { return ids.indexOf(t.id) > -1; });
+  }
+  function topicById(id) { return list('topics').find(function (t) { return t.id === id; }) || null; }
+  function docById(id) { return list('documents').find(function (d) { return d.id === id; }) || null; }
+  function docsOf(tid) { return list('documents').filter(function (d) { return d.topic_id === tid; }); }
+  function sumTopic(s) {
+    if (s.topic_id) return s.topic_id;
+    const d = docById(s.doc_id);
+    return d ? d.topic_id : '';
+  }
+  function sumsOf(tid) {
+    return list('summaries').filter(function (s) {
+      return sumTopic(s) === tid && String(s.text || '').trim() !== '';
+    });
+  }
+  function qsOf(tid) { return list('questions').filter(function (q) { return q.topic_id === tid; }); }
+  function appName() { return (data && data.settings && data.settings.app_name) || 'ติวหัวหน้าฝ่ายช่าง'; }
+
+  /* =========== เชื่อมต่อหลังบ้าน =========== */
+  function api(action, extra) {
+    const body = Object.assign({ action: action, pin: cfg.pin }, extra || {});
+    const ctrl = window.AbortController ? new AbortController() : null;
+    const timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 45000);
+    return fetch(cfg.apiUrl, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) { return r.json(); })
+      .catch(function (err) {
+        clearTimeout(timer);
+        if (err && err.name === 'AbortError') throw new Error('เซิร์ฟเวอร์ตอบช้าเกินไป ลองใหม่อีกครั้ง');
+        throw new Error('เชื่อมต่อไม่ได้ ตรวจอินเทอร์เน็ต ลิงก์ Web App และการ Deploy แบบ "ทุกคน"');
+      })
+      .then(function (res) {
+        clearTimeout(timer);
+        if (!res || !res.ok) {
+          const e = new Error((res && res.error) || 'เกิดข้อผิดพลาด');
+          e.code = res && res.code;
+          throw e;
+        }
+        return res.data;
+      });
+  }
+
+  function refresh(silent) {
+    if (!cfg.apiUrl || !cfg.pin) return Promise.resolve();
+    if (!navigator.onLine) {
+      if (!silent) toast('ออฟไลน์อยู่ ใช้ข้อมูลที่เก็บในเครื่อง');
+      return Promise.resolve();
+    }
+    if (state.syncing) return Promise.resolve();
+    state.syncing = true;
+    renderHeader();
+    return api('bootstrap').then(function (d) {
+      d.savedAt = new Date().toISOString();
+      data = d;
+      saveJSON(K_DATA, d);
+      applyServerSettings();
+      if (!silent) toast('อัปเดตข้อมูลแล้ว ✅');
+    }).catch(function (err) {
+      if (err.code === 'AUTH' || err.code === 'NO_PIN' || err.code === 'LOCKED') toast(err.message + ' (แก้ได้ที่ ⚙️)');
+      else if (!silent || !data) toast(err.message);
+    }).then(function () {
+      state.syncing = false;
+      if (state.view === 'settings') { renderHeader(); renderTabs(); } else render();
+    });
+  }
+
+  function applyServerSettings() {
+    const s = (data && data.settings) || {};
+    if (!cfg.rateTouched && Number(s.speech_rate) > 0) { cfg.rate = Number(s.speech_rate); saveCfg(); }
+  }
+
+  /* =========== ธีม / ไอคอน =========== */
+  function applyTheme() {
+    let t = cfg.theme;
+    if (t === 'auto') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    const sizes = { normal: '16px', large: '18px', xlarge: '20px' };
+    document.documentElement.style.fontSize = sizes[cfg.font] || '16px';
+    const col = String((data && data.settings && data.settings.theme_color) || '');
+    if (col.charAt(0) === '#' && (col.length === 7 || col.length === 4)) {
+      document.documentElement.style.setProperty('--primary', col);
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', col);
+    }
+  }
+
+  function makeAppleIcon() {
+    try {
+      const c = document.createElement('canvas');
+      c.width = 180; c.height = 180;
+      const g = c.getContext('2d');
+      g.scale(180 / 512, 180 / 512);
+      g.fillStyle = '#1e3a8a'; g.fillRect(0, 0, 512, 512);
+      g.fillStyle = '#fbbf24';
+      g.beginPath(); g.arc(256, 300, 120, Math.PI, 0); g.closePath(); g.fill();
+      g.fillRect(106, 296, 300, 34);
+      g.fillStyle = '#f59e0b'; g.fillRect(240, 170, 32, 70);
+      g.strokeStyle = '#ffffff'; g.lineWidth = 28; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(196, 380); g.lineTo(236, 420); g.lineTo(316, 340); g.stroke();
+      byId('appleIcon').setAttribute('href', c.toDataURL('image/png'));
+    } catch (e) { /* ใช้ไอคอนเดิม */ }
+  }
+
+  /* =========== เสียงอ่าน =========== */
+  function hasTTS() { return 'speechSynthesis' in window; }
+  function thaiVoices() {
+    if (!hasTTS()) return [];
+    return window.speechSynthesis.getVoices().filter(function (v) {
+      return String(v.lang || '').toLowerCase().indexOf('th') === 0;
+    });
+  }
+  function pickVoice() {
+    const vs = thaiVoices();
+    if (!vs.length) return null;
+    return vs.find(function (v) { return v.name === cfg.voice; }) || vs[0];
+  }
+
+  // แบ่งข้อความเป็นท่อนสั้น ๆ (iPad จะอ่านข้อความยาวได้ไม่ครบ)
+  function chunkText(text) {
+    const out = [];
+    String(text || '').split(NL).forEach(function (line) {
+      let cur = '';
+      line.split(' ').forEach(function (w) {
+        if (!w) return;
+        while (w.length > 220) {
+          if (cur) { out.push(cur); cur = ''; }
+          out.push(w.slice(0, 220));
+          w = w.slice(220);
+        }
+        if (!w) return;
+        if (cur && (cur.length + w.length + 1) > 160) { out.push(cur); cur = w; }
+        else cur = cur ? cur + ' ' + w : w;
+      });
+      if (cur) out.push(cur);
+    });
+    return out;
+  }
+
+  function qaChunks(q) {
+    let c = chunkText('คำถาม. ' + q.question);
+    KEYS.forEach(function (k, i) { if (q[k]) c = c.concat(chunkText('ข้อ ' + LETTERS[i] + '. ' + q[k])); });
+    c.push((Number(cfg.qaPause) || 5) * 1000); // ตัวเลข = หยุดให้คิด (มิลลิวินาที)
+    const ai = LETTERS.indexOf(String(q.answer));
+    c = c.concat(chunkText('เฉลย ข้อ ' + q.answer + (ai > -1 && q[KEYS[ai]] ? '. ' + q[KEYS[ai]] : '')));
+    if (q.explanation) c = c.concat(chunkText('คำอธิบาย. ' + q.explanation));
+    return c;
+  }
+
+  function buildQueue(mode, tkey) {
+    const tids = tkey === 'all' ? topicsOfAnn().map(function (t) { return t.id; }) : [tkey];
+    const q = [];
+    tids.forEach(function (tid) {
+      const t = topicById(tid);
+      const tname = t ? t.name : '';
+      if (mode === 'qa') {
+        qsOf(tid).forEach(function (x) {
+          q.push({ id: x.id, title: tname, text: x.question, answer: x.answer, chunks: qaChunks(x) });
+        });
+      } else {
+        sumsOf(tid).forEach(function (s) {
+          const d = docById(s.doc_id);
+          q.push({ id: s.id, title: d ? d.title : tname, text: s.text, chunks: chunkText(s.text) });
+        });
+      }
+    });
+    return q;
+  }
+
+  function selKey() { return state.listenMode + '|' + (state.listenTopic || 'all'); }
+
+  function playSelection(start) {
+    const key = selKey();
+    if (player.key !== key || !player.queue.length) {
+      player.queue = buildQueue(state.listenMode, state.listenTopic || 'all');
+      player.key = key;
+    }
+    if (!player.queue.length) { toast('ไม่มีรายการให้ฟัง'); return; }
+    playItem(start || 0);
+  }
+
+  function startSpeak(tk) {
+    if (!hasTTS()) { toast('เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน'); player.playing = false; updatePlayerUI(); return; }
+    clearTimeout(player.timer);
+    const ss = window.speechSynthesis;
+    if (ss.speaking || ss.pending) {
+      ss.cancel();
+      player.timer = setTimeout(function () { speakChunk(tk); }, 150);
+    } else {
+      speakChunk(tk);
+    }
+  }
+
+  function speakChunk(tk) {
+    if (tk !== player.token || !player.playing) return;
+    const item = player.queue[player.idx];
+    if (!item) { finishAll(); return; }
+    if (player.chunkIdx >= item.chunks.length) {
+      if (player.idx + 1 < player.queue.length) {
+        player.idx++;
+        player.chunkIdx = 0;
+        updatePlayerUI();
+        player.timer = setTimeout(function () { speakChunk(tk); }, 700);
+      } else {
+        finishAll();
+      }
+      return;
+    }
+    const c = item.chunks[player.chunkIdx];
+    if (typeof c === 'number') {
+      player.timer = setTimeout(function () {
+        if (tk !== player.token) return;
+        player.chunkIdx++;
+        speakChunk(tk);
+      }, c);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(c);
+    u.lang = 'th-TH';
+    u.rate = Number(cfg.rate) || 1;
+    const v = pickVoice();
+    if (v) u.voice = v;
+    u.onend = function () {
+      if (tk !== player.token) return;
+      player.chunkIdx++;
+      speakChunk(tk);
+    };
+    u.onerror = function (ev) {
+      if (tk !== player.token) return;
+      if (ev && (ev.error === 'interrupted' || ev.error === 'canceled')) return;
+      player.chunkIdx++;
+      speakChunk(tk);
+    };
+    player.utter = u;
+    window.speechSynthesis.speak(u);
+  }
+
+  function playItem(i) {
+    if (i < 0 || i >= player.queue.length) return;
+    player.token++;
+    player.idx = i;
+    player.chunkIdx = 0;
+    player.playing = true;
+    player.done = false;
+    keepAwake(true);
+    startSpeak(player.token);
+    updatePlayerUI();
+  }
+  function finishAll() {
+    player.playing = false;
+    player.done = true;
+    keepAwake(false);
+    updatePlayerUI();
+    toast('ฟังจบแล้ว 🎉');
+  }
+  function pauseSpeech() {
+    player.playing = false;
+    player.token++;
+    clearTimeout(player.timer);
+    try { window.speechSynthesis.cancel(); } catch (e) { /* ไม่เป็นไร */ }
+    keepAwake(false);
+    updatePlayerUI();
+  }
+  function resumeSpeech() {
+    if (player.done) { playItem(0); return; }
+    player.playing = true;
+    player.token++;
+    keepAwake(true);
+    startSpeak(player.token);
+    updatePlayerUI();
+  }
+  function togglePlay() {
+    if (!player.queue.length) return;
+    if (player.playing) pauseSpeech(); else resumeSpeech();
+  }
+  function stopAll() {
+    pauseSpeech();
+    player.queue = [];
+    player.key = '';
+    player.idx = 0;
+    player.chunkIdx = 0;
+    updatePlayerUI();
+  }
+  function nextItem() {
+    if (!player.queue.length) return;
+    if (player.idx + 1 < player.queue.length) playItem(player.idx + 1);
+    else toast('รายการสุดท้ายแล้ว');
+  }
+  function prevItem() {
+    if (!player.queue.length) return;
+    if (player.chunkIdx > 1 || player.idx === 0) playItem(player.idx);
+    else playItem(player.idx - 1);
+  }
+
+  // กันหน้าจอดับระหว่างฟัง (ถ้าเครื่องรองรับ)
+  function keepAwake(on) {
+    try {
+      if (on && navigator.wakeLock && !wakeLock) {
+        navigator.wakeLock.request('screen').then(function (l) {
+          wakeLock = l;
+          l.addEventListener('release', function () { wakeLock = null; });
+        }).catch(function () { /* ไม่รองรับ */ });
+      } else if (!on && wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+      }
+    } catch (e) { /* ไม่รองรับ */ }
+  }
+
+  function nowText(same) {
+    if (same && player.queue.length) {
+      const it = player.queue[player.idx] || {};
+      return (player.playing ? '🔊 กำลังฟัง ' : '⏸ หยุดที่ ') + 'ข้อ ' + (player.idx + 1) + '/' + player.queue.length +
+        '<div class="small muted">' + esc(it.title || '') + '</div>';
+    }
+    return 'กด ▶ เพื่อเริ่มฟัง หรือแตะรายการที่ต้องการ';
+  }
+
+  function updatePlayerUI() {
+    renderMini();
+    if (state.view !== 'listen') return;
+    const same = player.key === selKey();
+    const now = byId('pNow');
+    if (now) now.innerHTML = nowText(same);
+    const pb = byId('pPlay');
+    if (pb) pb.textContent = (same && player.playing) ? '⏸' : '▶';
+    const nodes = document.querySelectorAll('[data-qi]');
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const on = same && player.queue.length > 0 && Number(n.getAttribute('data-qi')) === player.idx;
+      n.classList.toggle('on', on);
+      if (on && player.playing) n.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  /* =========== ส่วนแสดงผลหลัก =========== */
+  const TABS = [
+    ['home', '🏠', 'หน้าหลัก'], ['learn', '📚', 'คลังความรู้'], ['listen', '🎧', 'ฟัง'],
+    ['exam', '📝', 'ข้อสอบ'], ['chat', '💬', 'ถาม AI']
+  ];
+
+  function renderHeader() {
+    const h = byId('topbar');
+    let right = state.online ? '' : '<span class="pill">ออฟไลน์</span>';
+    if (isReady()) {
+      right += '<button class="icon-btn' + (state.syncing ? ' spin' : '') + '" data-act="sync" aria-label="อัปเดตข้อมูล"><span>⟳</span></button>';
+      right += '<button class="icon-btn" data-act="go" data-id="settings" aria-label="ตั้งค่า">⚙️</button>';
+    }
+    h.innerHTML = '<div class="brand"><span>⛑️</span><span class="title">' + esc(appName()) + '</span></div>' +
+      '<div class="top-actions">' + right + '</div>';
+  }
+
+  function renderTabs() {
+    const n = byId('tabbar');
+    const ready = isReady();
+    document.body.classList.toggle('has-tabs', ready);
+    if (!ready) { n.hidden = true; n.innerHTML = ''; return; }
+    n.hidden = false;
+    const active = state.view === 'topic' ? 'learn' : state.view;
+    n.innerHTML = TABS.map(function (t) {
+      return '<button class="tab' + (active === t[0] ? ' on' : '') + '" data-act="go" data-id="' + t[0] + '">' +
+        '<span class="ti">' + t[1] + '</span><span class="tl">' + t[2] + '</span></button>';
+    }).join('');
+  }
+
+  function renderMini() {
+    const m = byId('mini');
+    const show = player.queue.length > 0 && state.view !== 'listen' && isReady();
+    document.body.classList.toggle('has-mini', show);
+    if (!show) { m.hidden = true; m.innerHTML = ''; return; }
+    m.hidden = false;
+    const it = player.queue[player.idx] || {};
+    m.innerHTML = '<button class="mtext" data-act="go" data-id="listen"><b>' + esc(it.title || 'กำลังฟัง') + '</b>' +
+      '<span>' + (player.idx + 1) + '/' + player.queue.length + ' · ' + esc(shortText(it.text, 60)) + '</span></button>' +
+      '<button class="icon-btn" data-act="pToggle" aria-label="เล่น/หยุด">' + (player.playing ? '⏸' : '▶') + '</button>' +
+      '<button class="icon-btn" data-act="pNext" aria-label="ถัดไป">⏭</button>' +
+      '<button class="icon-btn" data-act="pStop" aria-label="ปิด">✕</button>';
+  }
+
+  function render() {
+    applyTheme();
+    renderHeader();
+    renderTabs();
+    let html;
+    if (!cfg.apiUrl || !cfg.pin) html = viewSetup();
+    else if (!data) html = viewNoData();
+    else html = (VIEWS[state.view] || viewHome)();
+    byId('main').innerHTML = html;
+    renderMini();
+  }
+
+  /* ---------- หน้าเชื่อมต่อ ---------- */
+  function connFields() {
+    return '<label class="field"><span>ลิงก์ Web App (ลงท้ายด้วย /exec)</span>' +
+      '<input id="fUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec" value="' + esc(cfg.apiUrl) + '"></label>' +
+      '<label class="field"><span>PIN</span>' +
+      '<input id="fPin" type="password" inputmode="numeric" autocomplete="off" placeholder="ตัวเลข 4-8 หลัก" value="' + esc(cfg.pin) + '"></label>' +
+      '<div id="fMsg" class="msg"></div>';
+  }
+
+  function viewSetup() {
+    return '<section class="card narrow"><h2>👋 เริ่มต้นใช้งาน</h2>' +
+      '<p class="muted">ใส่ลิงก์ Web App และ PIN ที่ตั้งไว้ใน Google Sheet ทำครั้งเดียว เครื่องจะจำไว้</p>' +
+      connFields() + '<button class="btn primary block" data-act="connect">เชื่อมต่อ</button></section>';
+  }
+
+  function viewNoData() {
+    return '<section class="card narrow"><h2>ยังไม่มีข้อมูลในเครื่อง</h2>' +
+      '<p class="muted">ต้องต่ออินเทอร์เน็ตเพื่อโหลดข้อมูลครั้งแรก หลังจากนั้นจะใช้ออฟไลน์ได้</p>' +
+      '<div class="row wrap"><button class="btn primary" data-act="sync">⟳ โหลดข้อมูล</button>' +
+      '<button class="btn" data-act="resetAll">แก้ลิงก์ / PIN</button></div></section>';
+  }
+
+  /* ---------- หน้าหลัก ---------- */
+  function installBanner() {
+    if (isStandalone() || localStorage.getItem(K_HIDE)) return '';
+    if (state.installEvt) {
+      return '<div class="banner"><div>📲 ติดตั้งแอปลงเครื่อง เปิดได้เร็วและใช้ออฟไลน์ได้</div>' +
+        '<div class="row"><button class="btn primary sm" data-act="install">ติดตั้ง</button>' +
+        '<button class="btn ghost sm" data-act="hideInstall">ไม่ใช่ตอนนี้</button></div></div>';
+    }
+    if (isIOS()) {
+      return '<div class="banner"><div>📲 <b>ติดตั้งลงหน้าจอโฮม:</b> ใน Safari กดปุ่มแชร์ (สี่เหลี่ยมมีลูกศรชี้ขึ้น) แล้วเลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b></div>' +
+        '<button class="btn ghost sm" data-act="hideInstall">ปิด</button></div>';
+    }
+    return '';
+  }
+
+  function stat(n, label) { return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
+
+  function topicCard(t) {
+    return '<button class="tcard" data-act="openTopic" data-id="' + esc(t.id) + '">' +
+      '<div class="tname">' + esc(t.name) + '</div>' +
+      (t.description ? '<div class="tdesc">' + esc(t.description) + '</div>' : '') +
+      '<div class="tmeta"><span>📄 ' + docsOf(t.id).length + '</span><span>🎧 ' + sumsOf(t.id).length +
+      '</span><span>📝 ' + qsOf(t.id).length + '</span></div></button>';
+  }
+
+  function viewHome() {
+    const ann = currentAnn();
+    const topics = topicsOfAnn();
+    let nd = 0, ns = 0, nq = 0;
+    topics.forEach(function (t) { nd += docsOf(t.id).length; ns += sumsOf(t.id).length; nq += qsOf(t.id).length; });
+
+    let h = installBanner();
+    h += '<section class="card"><div class="small muted">ประกาศที่กำลังติว</div>';
+    if (anns().length > 1) {
+      h += '<select class="big-select" data-change="ann">' + anns().map(function (a) {
+        return '<option value="' + esc(a.id) + '"' + (ann && a.id === ann.id ? ' selected' : '') + '>' +
+          esc(a.name) + (a.year ? ' (' + esc(a.year) + ')' : '') + '</option>';
+      }).join('') + '</select>';
+    } else {
+      h += '<h2>' + esc(ann ? ann.name : 'ยังไม่มีประกาศ') + '</h2>';
+    }
+    h += '<div class="stats">' + stat(topics.length, 'หัวข้อ') + stat(nd, 'เอกสาร') + stat(ns, 'สรุป') + stat(nq, 'ข้อสอบ') + '</div>';
+    h += '<div class="small muted mt">ข้อมูลล่าสุด: ' + fmtDate(data.savedAt) + '</div></section>';
+
+    h += '<section class="card"><h2>🎧 ฟังเลย</h2><div class="row wrap">';
+    if (player.queue.length) h += '<button class="btn primary" data-act="go" data-id="listen">▶ ฟังต่อ (' + (player.idx + 1) + '/' + player.queue.length + ')</button>';
+    h += '<button class="btn" data-act="quickListen" data-id="summary"' + (ns ? '' : ' disabled') + '>ฟังสรุปทุกหัวข้อ</button>';
+    h += '<button class="btn" data-act="quickListen" data-id="qa"' + (nq ? '' : ' disabled') + '>ฟังถาม-ตอบ</button></div></section>';
+
+    h += '<h3 class="sec">หัวข้อที่ต้องอ่าน</h3>';
+    h += topics.length ? '<div class="grid">' + topics.map(topicCard).join('') + '</div>'
+      : '<div class="empty">ยังไม่มีหัวข้อ เพิ่มได้ที่ชีต "หัวข้อ"</div>';
+    return h;
+  }
+
+  /* ---------- คลังความรู้ ---------- */
+  function viewLearn() {
+    const ann = currentAnn();
+    const topics = topicsOfAnn();
+    let h = '<section class="card"><h2>📚 คลังความรู้</h2><div class="muted">' + esc(ann ? ann.name : '') + '</div></section>';
+    h += topics.length ? '<div class="grid">' + topics.map(topicCard).join('') + '</div>'
+      : '<div class="empty">ยังไม่มีหัวข้อในประกาศนี้</div>';
+    return h;
+  }
+
+  function docIcon(t) {
+    const m = { 'PDF': '📕', 'รูปภาพ': '🖼️', 'ลิงก์': '🔗', 'ข้อความ': '📝' };
+    return m[t] || '📄';
+  }
+  function statusBadge(s) {
+    if (s === 'ประมวลผลแล้ว') return '<span class="badge ok">ประมวลผลแล้ว</span>';
+    if (s === 'ผิดพลาด') return '<span class="badge bad">ผิดพลาด</span>';
+    return '<span class="badge wait">' + esc(s || 'รอประมวลผล') + '</span>';
+  }
+  function sumList(items, open) {
+    if (!items.length) return '';
+    return '<details class="sums"' + (open ? ' open' : '') + '><summary>สรุป ' + items.length + ' ข้อ</summary><ul class="slist">' +
+      items.map(function (s, i) {
+        return '<li><span class="num">' + (i + 1) + '</span><div class="grow">' + br(s.text) + '</div>' +
+          '<button class="icon-btn sm" data-act="speakOne" data-id="' + esc(s.id) + '" aria-label="ฟัง">🔊</button></li>';
+      }).join('') + '</ul></details>';
+  }
+
+  function viewTopic() {
+    const t = topicById(state.topicId);
+    if (!t) { state.view = 'learn'; return viewLearn(); }
+    const docs = docsOf(t.id), sums = sumsOf(t.id), qs = qsOf(t.id);
+    let h = '<button class="back" data-act="go" data-id="learn">‹ กลับ</button>';
+    h += '<section class="card"><h2>' + esc(t.name) + '</h2>' +
+      (t.description ? '<p class="muted">' + br(t.description) + '</p>' : '') +
+      '<div class="row wrap"><button class="btn primary" data-act="listenTopic" data-id="' + esc(t.id) + '"' + (sums.length ? '' : ' disabled') + '>🎧 ฟังสรุปทั้งหัวข้อ (' + sums.length + ')</button>' +
+      '<button class="btn" data-act="listenQA" data-id="' + esc(t.id) + '"' + (qs.length ? '' : ' disabled') + '>❓ ฟังถาม-ตอบ (' + qs.length + ')</button></div></section>';
+
+    h += '<h3 class="sec">เอกสาร (' + docs.length + ')</h3>';
+    if (!docs.length) h += '<div class="empty">ยังไม่มีเอกสารในหัวข้อนี้ เพิ่มได้ที่ชีต "เอกสาร"</div>';
+    docs.forEach(function (d) {
+      const ds = sums.filter(function (s) { return s.doc_id === d.id; });
+      h += '<section class="card"><div class="doc-head"><span class="dicon">' + docIcon(d.type) + '</span>' +
+        '<div class="grow"><div class="dtitle">' + esc(d.title || '(ไม่มีชื่อ)') + '</div>' +
+        '<div class="small muted">' + esc(d.type || '') + ' ' + statusBadge(d.status) + '</div></div>' +
+        (d.open_url ? '<button class="btn sm" data-act="openDoc" data-id="' + esc(d.id) + '">เปิด ↗</button>' : '') + '</div>' +
+        (d.note ? '<div class="small muted mt">' + br(d.note) + '</div>' : '') + sumList(ds, false) + '</section>';
+    });
+
+    const loose = sums.filter(function (s) {
+      return !s.doc_id || !docs.some(function (d) { return d.id === s.doc_id; });
+    });
+    if (loose.length) h += '<h3 class="sec">สรุปทั่วไป</h3><section class="card">' + sumList(loose, true) + '</section>';
+    return h;
+  }
+
+  /* ---------- ฟัง ---------- */
+  function viewListen() {
+    const topics = topicsOfAnn();
+    const tkey = state.listenTopic || 'all';
+    const items = buildQueue(state.listenMode, tkey);
+    const same = player.key === selKey();
+
+    let h = '<section class="card"><h2>🎧 ฟังเนื้อหา</h2>';
+    h += '<div class="seg"><button class="' + (state.listenMode === 'summary' ? 'on' : '') + '" data-act="mode" data-id="summary">สรุปเนื้อหา</button>' +
+      '<button class="' + (state.listenMode === 'qa' ? 'on' : '') + '" data-act="mode" data-id="qa">ถาม-ตอบ</button></div>';
+    h += '<label class="field"><span>หัวข้อ</span><select data-change="listenTopic"><option value="all">ทุกหัวข้อในประกาศนี้</option>' +
+      topics.map(function (t) {
+        return '<option value="' + esc(t.id) + '"' + (t.id === tkey ? ' selected' : '') + '>' + esc(t.name) + '</option>';
+      }).join('') + '</select></label>';
+    h += '<div class="player"><div id="pNow" class="pnow">' + nowText(same) + '</div>' +
+      '<div class="pctrl"><button class="icon-btn lg" data-act="pPrev" aria-label="ก่อนหน้า">⏮</button>' +
+      '<button id="pPlay" class="play" data-act="pToggleSel" aria-label="เล่น/หยุด">' + (same && player.playing ? '⏸' : '▶') + '</button>' +
+      '<button class="icon-btn lg" data-act="pNext" aria-label="ถัดไป">⏭</button>' +
+      '<button class="icon-btn lg" data-act="pStop" aria-label="หยุด">⏹</button></div>' +
+      '<div class="rates">' + [0.75, 1, 1.25, 1.5, 2].map(function (r) {
+        return '<button class="chip' + (Number(cfg.rate) === r ? ' on' : '') + '" data-act="rate" data-id="' + r + '">' + r + 'x</button>';
+      }).join('') + '</div></div></section>';
+
+    if (!items.length) {
+      h += state.listenMode === 'qa'
+        ? '<div class="empty">ยังไม่มีข้อสอบในหัวข้อนี้</div>'
+        : '<div class="empty">ยังไม่มีสรุปเนื้อหา<br>ช่วงที่ 4 AI จะสรุปให้อัตโนมัติ ตอนนี้ทดลองพิมพ์เองได้ในชีต "สรุปเนื้อหา"</div>';
+      return h;
+    }
+    h += '<section class="card"><div class="qlist">' + items.map(function (it, i) {
+      return '<button class="qitem' + (same && player.idx === i ? ' on' : '') + '" data-act="playAt" data-id="' + i + '" data-qi="' + i + '">' +
+        '<span class="qn">' + (i + 1) + '</span><span class="grow"><span class="qt">' + esc(it.title) + '</span>' +
+        '<span class="qx">' + br(it.text) + '</span>' +
+        (it.answer ? '<span class="qt">เฉลย: ' + esc(it.answer) + '</span>' : '') + '</span></button>';
+    }).join('') + '</div></section>';
+    return h;
+  }
+
+  /* ---------- ข้อสอบ / AI (ช่วงถัดไป) ---------- */
+  function viewExam() {
+    return '<section class="card"><h2>📝 ข้อสอบ</h2>' +
+      '<p>โหมดฝึก จำลองสอบจับเวลา ทวนข้อที่ผิด และสถิติ จะใช้งานได้ใน <b>ช่วงที่ 3</b></p>' +
+      '<p class="muted">ตอนนี้มีข้อสอบในคลัง ' + list('questions').length + ' ข้อ ระหว่างนี้ฟังแบบถาม-ตอบไปก่อนได้</p>' +
+      '<button class="btn primary" data-act="quickListen" data-id="qa">❓ ฟังถาม-ตอบ</button></section>';
+  }
+  function viewChat() {
+    return '<section class="card"><h2>💬 ถาม AI</h2>' +
+      '<p>แชตถาม-ตอบจากเอกสาร (พูดผ่านไมค์ได้) และให้ AI ออกข้อสอบ จะใช้งานได้ใน <b>ช่วงที่ 4</b></p>' +
+      '<p class="muted">ช่วงนั้นต้องใช้คีย์ Gemini ซึ่งผมจะสอนสมัครทีละขั้นครับ</p></section>';
+  }
+
+  /* ---------- ตั้งค่า ---------- */
+  function selectField(label, key, opts, cur) {
+    return '<label class="field"><span>' + esc(label) + '</span><select data-change="' + key + '">' +
+      opts.map(function (o) {
+        return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+      }).join('') + '</select></label>';
+  }
+
+  function viewSettings() {
+    const vs = thaiVoices();
+    const kb = Math.round(((localStorage.getItem(K_DATA) || '').length * 2) / 1024);
+    let h = '<section class="card"><h2>🔗 การเชื่อมต่อ</h2>' + connFields() +
+      '<button class="btn primary" data-act="connect">ทดสอบและบันทึก</button></section>';
+    h += '<section class="card"><h2>🎨 การแสดงผล</h2>' +
+      selectField('ธีม', 'theme', [['auto', 'ตามระบบเครื่อง'], ['light', 'สว่าง'], ['dark', 'กลางคืน']], cfg.theme) +
+      selectField('ขนาดตัวอักษร', 'font', [['normal', 'ปกติ'], ['large', 'ใหญ่'], ['xlarge', 'ใหญ่มาก']], cfg.font) + '</section>';
+    h += '<section class="card"><h2>🔊 เสียงอ่าน</h2>';
+    if (vs.length) {
+      h += selectField('เสียงภาษาไทย', 'voice', [['', 'อัตโนมัติ']].concat(vs.map(function (v) { return [v.name, v.name]; })), cfg.voice);
+    } else {
+      h += '<div class="banner">⚠️ ยังไม่พบเสียงภาษาไทยในเครื่อง บนไอแพดไปที่ การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียง</div>';
+    }
+    h += selectField('เวลาคิดก่อนเฉลย (โหมดถาม-ตอบ)', 'qaPause',
+      [['3', '3 วินาที'], ['5', '5 วินาที'], ['10', '10 วินาที'], ['15', '15 วินาที']], String(cfg.qaPause)) +
+      '<button class="btn" data-act="testVoice">▶ ทดสอบเสียง</button></section>';
+    h += '<section class="card"><h2>💾 ข้อมูลในเครื่อง</h2>' +
+      '<p class="muted">ข้อมูลล่าสุด: ' + fmtDate(data && data.savedAt) + ' · ขนาดประมาณ ' + kb + ' KB</p>' +
+      '<div class="row wrap"><button class="btn" data-act="sync">⟳ อัปเดตข้อมูล</button>' +
+      '<button class="btn danger" data-act="clearData">ล้างข้อมูลในเครื่อง</button>' +
+      '<button class="btn danger" data-act="resetAll">ลบการตั้งค่าทั้งหมด</button></div></section>';
+    h += '<p class="small muted">แอป v' + APP_VERSION + ' · หลังบ้าน v' + esc((data && data.version) || '-') + '</p>';
+    return h;
+  }
+
+  const VIEWS = { home: viewHome, learn: viewLearn, topic: viewTopic, listen: viewListen,
+    exam: viewExam, chat: viewChat, settings: viewSettings };
+
+  /* =========== การกดปุ่ม =========== */
+  function goTo(view) { state.view = view; render(); window.scrollTo(0, 0); }
+
+  const ACTIONS = {
+    go: function (id) { goTo(id); },
+    openTopic: function (id) { state.topicId = id; goTo('topic'); },
+    sync: function () { refresh(false); },
+    connect: function (id, el) {
+      const url = byId('fUrl').value.trim();
+      const pin = byId('fPin').value.trim();
+      const msg = byId('fMsg');
+      function fail(t) { msg.textContent = '❌ ' + t; msg.className = 'msg bad'; }
+      if (url.indexOf('https://script.google.com/') !== 0 || url.slice(-5) !== '/exec') {
+        fail('ลิงก์ต้องขึ้นต้นด้วย https://script.google.com/ และลงท้ายด้วย /exec'); return;
+      }
+      if (pin.length < 4) { fail('กรุณาใส่ PIN'); return; }
+      if (!navigator.onLine) { fail('ต้องต่ออินเทอร์เน็ตก่อน'); return; }
+      const fromSettings = state.view === 'settings' && isReady();
+      const old = { apiUrl: cfg.apiUrl, pin: cfg.pin };
+      cfg.apiUrl = url;
+      cfg.pin = pin;
+      el.disabled = true;
+      el.textContent = 'กำลังเชื่อมต่อ...';
+      api('bootstrap').then(function (d) {
+        d.savedAt = new Date().toISOString();
+        data = d;
+        saveJSON(K_DATA, d);
+        saveCfg();
+        applyServerSettings();
+        toast('เชื่อมต่อสำเร็จ ✅');
+        state.view = fromSettings ? 'settings' : 'home';
+        render();
+      }).catch(function (err) {
+        cfg.apiUrl = old.apiUrl;
+        cfg.pin = old.pin;
+        fail(err.message);
+        el.disabled = false;
+        el.textContent = fromSettings ? 'ทดสอบและบันทึก' : 'เชื่อมต่อ';
+      });
+    },
+    quickListen: function (id) {
+      state.listenMode = id; state.listenTopic = 'all'; goTo('listen'); playSelection(0);
+    },
+    listenTopic: function (id) {
+      state.listenMode = 'summary'; state.listenTopic = id; goTo('listen'); playSelection(0);
+    },
+    listenQA: function (id) {
+      state.listenMode = 'qa'; state.listenTopic = id; goTo('listen'); playSelection(0);
+    },
+    mode: function (id) { state.listenMode = id; render(); },
+    playAt: function (id) {
+      const i = Number(id);
+      if (player.key === selKey() && player.queue.length) playItem(i); else playSelection(i);
+    },
+    pToggleSel: function () {
+      if (player.key === selKey() && player.queue.length) togglePlay(); else playSelection(0);
+    },
+    pToggle: function () { togglePlay(); },
+    pNext: function () { nextItem(); },
+    pPrev: function () { prevItem(); },
+    pStop: function () { stopAll(); },
+    rate: function (id) {
+      cfg.rate = Number(id) || 1;
+      cfg.rateTouched = true;
+      saveCfg();
+      const chips = document.querySelectorAll('[data-act="rate"]');
+      for (let i = 0; i < chips.length; i++) chips[i].classList.toggle('on', Number(chips[i].getAttribute('data-id')) === cfg.rate);
+      if (player.playing) { player.token++; startSpeak(player.token); }
+    },
+    speakOne: function (id) {
+      const s = list('summaries').find(function (x) { return x.id === id; });
+      if (!s) return;
+      const d = docById(s.doc_id);
+      const t = topicById(sumTopic(s));
+      player.queue = [{ id: s.id, title: d ? d.title : (t ? t.name : ''), text: s.text, chunks: chunkText(s.text) }];
+      player.key = 'one|' + id;
+      playItem(0);
+    },
+    openDoc: function (id) {
+      const d = docById(id);
+      if (!d || !d.open_url) return;
+      if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ตเพื่อเปิดไฟล์ต้นฉบับ'); return; }
+      window.open(d.open_url, '_blank', 'noopener');
+    },
+    install: function () {
+      if (!state.installEvt) return;
+      state.installEvt.prompt();
+      state.installEvt = null;
+      render();
+    },
+    hideInstall: function () { localStorage.setItem(K_HIDE, '1'); render(); },
+    testVoice: function () {
+      const txt = 'สวัสดีครับ นี่คือเสียงอ่านภาษาไทย สำหรับติวสอบหัวหน้าฝ่ายช่าง';
+      player.queue = [{ id: 'test', title: 'ทดสอบเสียง', text: txt, chunks: chunkText(txt) }];
+      player.key = 'test';
+      playItem(0);
+    },
+    clearData: function () {
+      if (!window.confirm('ล้างข้อมูลที่เก็บในเครื่อง? (ข้อมูลใน Google Sheet ไม่หาย โหลดใหม่ได้)')) return;
+      stopAll();
+      localStorage.removeItem(K_DATA);
+      data = null;
+      render();
+    },
+    resetAll: function () {
+      if (!window.confirm('ลบลิงก์ PIN และข้อมูลทั้งหมดในเครื่อง?')) return;
+      stopAll();
+      localStorage.removeItem(K_DATA);
+      localStorage.removeItem(K_CFG);
+      cfg = Object.assign({}, DEFAULT_CFG);
+      data = null;
+      state.view = 'home';
+      render();
+    }
+  };
+
+  const CHANGES = {
+    ann: function (v) { cfg.annId = v; saveCfg(); state.listenTopic = 'all'; render(); },
+    listenTopic: function (v) { state.listenTopic = v; render(); },
+    theme: function (v) { cfg.theme = v; saveCfg(); applyTheme(); },
+    font: function (v) { cfg.font = v; saveCfg(); applyTheme(); },
+    voice: function (v) { cfg.voice = v; saveCfg(); },
+    qaPause: function (v) { cfg.qaPause = Number(v) || 5; saveCfg(); player.key = ''; }
+  };
+
+  document.addEventListener('click', function (e) {
+    const el = e.target.closest ? e.target.closest('[data-act]') : null;
+    if (!el || el.disabled) return;
+    const fn = ACTIONS[el.getAttribute('data-act')];
+    if (fn) fn(el.getAttribute('data-id'), el, e);
+  });
+  document.addEventListener('change', function (e) {
+    const el = e.target;
+    const k = el && el.getAttribute ? el.getAttribute('data-change') : null;
+    if (k && CHANGES[k]) CHANGES[k](el.value, el);
+  });
+
+  /* =========== เหตุการณ์ของระบบ =========== */
+  window.addEventListener('online', function () { state.online = true; renderHeader(); refresh(true); });
+  window.addEventListener('offline', function () { state.online = false; renderHeader(); });
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    state.installEvt = e;
+    if (state.view === 'home' && isReady()) render();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !player.playing) return;
+    keepAwake(true);
+    try {
+      const ss = window.speechSynthesis;
+      ss.resume();
+      if (!ss.speaking && !ss.pending) { player.token++; startSpeak(player.token); }
+    } catch (e) { /* ไม่เป็นไร */ }
+  });
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', applyTheme);
+    else if (mq.addListener) mq.addListener(applyTheme);
+  }
+  if (hasTTS()) {
+    window.speechSynthesis.onvoiceschanged = function () { if (state.view === 'settings') render(); };
+  }
+
+  function registerSW() {
+    if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
+    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      reg.addEventListener('updatefound', function () {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', function () {
+          if (nw.state === 'activated' && hadController) toast('อัปเดตแอปแล้ว ปิดแล้วเปิดใหม่เพื่อใช้เวอร์ชันล่าสุด');
+        });
+      });
+    }).catch(function () { /* ไม่เป็นไร */ });
+  }
+
+  /* =========== เริ่มทำงาน =========== */
+  makeAppleIcon();
+  render();
+  if (cfg.apiUrl && cfg.pin) refresh(true);
+  registerSW();
+})();
+</script>
+</body>
+</html>
