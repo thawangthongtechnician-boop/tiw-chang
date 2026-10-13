@@ -18,7 +18,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:16px}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Sukhumvit Set","Thonburi","Noto Sans Thai","Leelawadee UI",Tahoma,sans-serif;font-size:1rem;line-height:1.65;-webkit-text-size-adjust:100%}
-button,input,select{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--primary);color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 14px 8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;min-width:0}
@@ -50,6 +50,7 @@ body.has-mini main{padding-bottom:calc(var(--tab) + 100px + env(safe-area-inset-
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:var(--soft);cursor:pointer;font-size:1.15rem;flex:none}
 .icon-btn.sm{width:38px;height:38px;font-size:1rem}
 .icon-btn.lg{width:52px;height:52px;font-size:1.3rem}
+.icon-btn:disabled{opacity:.45;cursor:default}
 .spin span{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .field{display:block;margin:12px 0}
@@ -155,6 +156,23 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 .rv:first-child{border-top:0;padding-top:0}
 .rv .opt{min-height:0;padding:8px 10px;margin-bottom:6px;cursor:default}
 .rv .qtext{font-size:1rem}
+.chat{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.bub{max-width:90%;padding:10px 14px;border-radius:16px;line-height:1.7;word-wrap:break-word;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.bub.ai{align-self:flex-start;background:var(--soft);border-bottom-left-radius:4px}
+.bub.err{background:rgba(220,38,38,.10);color:var(--bad)}
+.bub .li{padding-left:4px}
+.bub .sp{height:6px}
+.bub .src{font-size:.78rem;color:var(--muted);margin-top:6px}
+.bub-tools{display:flex;gap:6px;margin-top:6px}
+.typing span{display:inline-block;width:8px;height:8px;margin:0 2px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.2}}
+.composer{display:flex;gap:8px;align-items:flex-end}
+.composer textarea{flex:1;min-height:52px;max-height:200px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);resize:vertical}
+.mic.on{background:var(--bad);color:#fff;animation:pulse 1s infinite}
+.send{background:var(--primary);color:#fff}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:var(--tab);border:0;background:none;cursor:pointer;color:var(--muted)}
 .tab .ti{font-size:1.3rem;line-height:1}
@@ -189,7 +207,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 (function () {
   'use strict';
 
-  const APP_VERSION = '3.0.0';
+  const APP_VERSION = '4.0.0';
   const NL = String.fromCharCode(10);
   const K_CFG = 'tiw_cfg';
   const K_DATA = 'tiw_data';
@@ -198,20 +216,28 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   const K_FLAGS = 'tiw_flags';
   const K_SES = 'tiw_session';
   const K_OLD = 'tiw_hist';
+  const K_CHAT = 'tiw_chat';
   const LETTERS = ['ก', 'ข', 'ค', 'ง'];
   const KEYS = ['a', 'b', 'c', 'd'];
   const MODE_LABEL = { practice: 'ฝึกทำ', mock: 'จำลองสอบ', review: 'ทวนข้อผิด' };
+  const AI_STOP = ['QUOTA', 'NO_KEY', 'BAD_KEY', 'MODEL'];
+  const SUGGEST = ['สรุปประเด็นสำคัญที่มักออกสอบ', 'มีตัวเลขหรือระยะเวลาอะไรที่ต้องจำบ้าง',
+    'อธิบายให้เข้าใจง่ายเหมือนสอนมือใหม่', 'ยกตัวอย่างสถานการณ์ที่อาจออกเป็นข้อสอบ'];
 
   const DEFAULT_CFG = { apiUrl: '', pin: '', annId: '', theme: 'auto', font: 'normal',
     rate: 1, rateTouched: false, voice: '', qaPause: 5,
-    exMode: 'practice', exTopics: [], exCount: 0, exMin: 0, exSmart: true };
+    exMode: 'practice', exTopics: [], exCount: 0, exMin: 0, exSmart: true,
+    chatTopic: 'all', aiGeneral: false, autoSpeak: 'voice', autoSend: true,
+    genTopic: '', genCount: 10, genDiff: 'กลาง' };
   let cfg = Object.assign({}, DEFAULT_CFG, loadJSON(K_CFG, {}));
   if (!Array.isArray(cfg.exTopics)) cfg.exTopics = [];
   if (!MODE_LABEL[cfg.exMode]) cfg.exMode = 'practice';
   let data = loadJSON(K_DATA, null);
   const state = { view: 'home', topicId: '', listenTopic: 'all', listenMode: 'summary',
     syncing: false, online: navigator.onLine, installEvt: null,
-    examTab: 'start', ses: loadJSON(K_SES, null), res: null, gridOpen: false };
+    examTab: 'start', ses: loadJSON(K_SES, null), res: null, gridOpen: false,
+    aiTab: 'chat', chatBusy: false, chatDraft: '', listening: false, voiceAsked: false,
+    genBusy: false, genMsg: '', genResult: null, procBusy: false, procMsg: '' };
   if (state.ses && (!Array.isArray(state.ses.qs) || !state.ses.qs.length)) state.ses = null;
   const player = { queue: [], key: '', idx: 0, chunkIdx: 0, playing: false, done: false, token: 0, timer: null, utter: null };
   let wakeLock = null;
@@ -219,6 +245,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   let examTimer = null;
   let advTimer = null;
   let syncPromise = null;
+  let recog = null;
   const hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
   migrateOld();
 
@@ -267,7 +294,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3200);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3500);
   }
   function isIOS() {
     const ua = navigator.userAgent;
@@ -291,10 +318,14 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     return 'EX' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase();
   }
   function stat(n, label) { return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
+  function segBtn(act, id, label, cur) {
+    return '<button class="' + (cur === id ? 'on' : '') + '" data-act="' + act + '" data-id="' + id + '">' + label + '</button>';
+  }
 
   /* =========== ข้อมูล =========== */
   function list(name) { return (data && Array.isArray(data[name])) ? data[name] : []; }
   function anns() { return list('announcements'); }
+  function aiInfo() { return (data && data.ai) || {}; }
   function currentAnn() {
     const a = anns();
     return a.find(function (x) { return x.id === cfg.annId; }) || a[0] || null;
@@ -330,6 +361,11 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   function passPct() { return settingNum('pass_percent', 60); }
   function examCount() { return cfg.exCount || settingNum('exam_default_count', 20); }
   function examMinutes() { return cfg.exMin || settingNum('exam_default_minutes', 30); }
+  function procCount(tids) {
+    const set = {};
+    tids.forEach(function (t) { set[t] = true; });
+    return list('documents').filter(function (d) { return set[d.topic_id] && d.status === 'ประมวลผลแล้ว'; }).length;
+  }
 
   /* =========== ข้อมูลข้อสอบ =========== */
   function validQ(q) {
@@ -363,8 +399,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     const t = topicById(arr[0]);
     return t ? t.name : '';
   }
-
-  // ผลสอบที่ทำในเครื่องนี้ (เก็บทุกชุดที่ยังไม่ส่ง + 30 ชุดล่าสุดที่ส่งแล้ว)
   function localAttempts() { return loadJSON(K_LOCAL, []); }
   function saveLocal(arr) {
     const uns = arr.filter(function (a) { return !a.synced; });
@@ -384,8 +418,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     });
     saveLocal(cur);
   }
-
-  // สถิติรายข้อ = ค่าจาก Google Sheet + ผลที่ยังไม่ขึ้นชีต
   function qStats() {
     const m = {};
     list('questions').forEach(function (q) {
@@ -418,10 +450,10 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   }
 
   /* =========== เชื่อมต่อหลังบ้าน =========== */
-  function api(action, extra) {
+  function api(action, extra, timeoutMs) {
     const body = Object.assign({ action: action, pin: cfg.pin }, extra || {});
     const ctrl = window.AbortController ? new AbortController() : null;
-    const timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 45000);
+    const timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, timeoutMs || 45000);
     return fetch(cfg.apiUrl, {
       method: 'POST', redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -454,7 +486,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     });
   }
 
-  // ส่งผลสอบและการแจ้งข้อผิดที่ค้างอยู่ขึ้น Google Sheet
   function syncAll() {
     if (syncPromise) return syncPromise;
     if (!navigator.onLine || !cfg.apiUrl || !cfg.pin) return Promise.resolve(false);
@@ -501,7 +532,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       state.syncing = false;
       const ae = document.activeElement;
       const typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT' || ae.tagName === 'TEXTAREA');
-      if (typing) { renderHeader(); renderTabs(); } else render();
+      if (typing || state.listening) { renderHeader(); renderTabs(); } else render();
     });
   }
 
@@ -734,7 +765,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
           wakeLock = l;
           l.addEventListener('release', function () { wakeLock = null; });
         }).catch(function () { /* ไม่รองรับ */ });
-      } else if (!on && wakeLock) {
+      } else if (!on && wakeLock && !player.playing && !state.procBusy && !state.genBusy) {
         wakeLock.release();
         wakeLock = null;
       }
@@ -784,7 +815,6 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     return arr.sort(function (a, b) { return pri[b.id] - pri[a.id]; });
   }
 
-  // o = { mode, tids, count, minutes, smart, qs (ถ้าส่งรายการข้อมาเอง) }
   function startSession(o) {
     const st = qStats();
     let pool = o.qs ? o.qs.slice() : questionsIn(o.tids || []);
@@ -819,7 +849,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
 
   function guardSession() {
     if (!state.ses) return true;
-    if (!window.confirm('มีข้อสอบที่ทำค้างอยู่ ต้องการทิ้งชุดเดิมแล้วเริ่มชุดใหม่?')) { goTo('exam'); return false; }
+    if (!window.confirm('มีข้อสอบที่ทำค้างอยู่ ต้องการทิ้งชุดเดิมแล้วเริ่มชุดใหม่?')) return false;
     endSession();
     return true;
   }
@@ -885,6 +915,218 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     window.scrollTo(0, 0);
     if (auto) toast('⏰ หมดเวลา ระบบส่งข้อสอบให้อัตโนมัติ');
     refresh(true);
+  }
+
+  /* =========== AI: แชต / ไมค์ / ออกข้อสอบ / ประมวลผล =========== */
+  function chatLog() { return loadJSON(K_CHAT, []); }
+  function saveChat(a) { saveJSON(K_CHAT, a.slice(-60)); }
+  function chatTopicIds() {
+    const topics = topicsOfAnn();
+    if (cfg.chatTopic !== 'all' && topics.some(function (t) { return t.id === cfg.chatTopic; })) return [cfg.chatTopic];
+    return topics.map(function (t) { return t.id; });
+  }
+  function scrollEnd() { setTimeout(function () { window.scrollTo(0, document.body.scrollHeight); }, 40); }
+
+  function mdLite(s) {
+    return String(s || '').split(NL).map(function (line) {
+      let t = line.trim();
+      if (!t) return '<div class="sp"></div>';
+      let bullet = false;
+      if (t.charAt(0) === '#') {
+        while (t.charAt(0) === '#') t = t.slice(1);
+        t = '**' + t.trim() + '**';
+      }
+      if (t.indexOf('- ') === 0 || t.indexOf('* ') === 0 || t.indexOf('• ') === 0) { bullet = true; t = t.slice(2); }
+      const html = esc(t).split('**').map(function (p, i) { return i % 2 ? '<b>' + p + '</b>' : p; }).join('');
+      return bullet ? '<div class="li">• ' + html + '</div>' : '<div>' + html + '</div>';
+    }).join('');
+  }
+  function plainText(s) {
+    return String(s || '').split('**').join('').split(NL).map(function (l) {
+      let t = l.trim();
+      while (t.charAt(0) === '#') t = t.slice(1);
+      t = t.trim();
+      if (t.indexOf('- ') === 0 || t.indexOf('* ') === 0 || t.indexOf('• ') === 0) t = t.slice(2);
+      return t;
+    }).filter(function (t) { return t; }).join(NL);
+  }
+
+  function sendChat(text) {
+    const box = byId('chatIn');
+    const q = String(text || (box ? box.value : '') || '').trim();
+    if (!q || state.chatBusy) return;
+    if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ตเพื่อถาม AI'); return; }
+    const voice = state.voiceAsked;
+    state.voiceAsked = false;
+    const msgs = chatLog();
+    const hist = msgs.filter(function (m) { return !m.err; }).slice(-6)
+      .map(function (m) { return { role: m.role, text: String(m.text).slice(0, 1500) }; });
+    msgs.push({ role: 'user', text: q, t: Date.now() });
+    saveChat(msgs);
+    state.chatDraft = '';
+    state.chatBusy = true;
+    render();
+    scrollEnd();
+    api('chat', { question: q, topic_ids: chatTopicIds(), history: hist, allowGeneral: !!cfg.aiGeneral }, 150000)
+      .then(function (d) {
+        const arr = chatLog();
+        arr.push({ role: 'model', text: d.answer, sources: d.sources || [], t: Date.now() });
+        saveChat(arr);
+        if (cfg.autoSpeak === 'always' || (cfg.autoSpeak === 'voice' && voice)) {
+          speakText('chat' + Date.now(), 'คำตอบ AI', plainText(d.answer));
+        }
+      }).catch(function (err) {
+        const arr = chatLog();
+        arr.push({ role: 'model', text: '⚠️ ' + err.message, err: true, t: Date.now() });
+        saveChat(arr);
+      }).then(function () {
+        state.chatBusy = false;
+        if (state.view === 'chat') { render(); scrollEnd(); }
+      });
+  }
+
+  function updateMicBtn() {
+    const b = byId('micBtn');
+    if (b) b.classList.toggle('on', state.listening);
+  }
+
+  function toggleMic() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      toast('เครื่องนี้ใช้ไมค์ในแอปไม่ได้ ให้แตะช่องพิมพ์ แล้วกด 🎤 บนแป้นพิมพ์แทน');
+      const b0 = byId('chatIn');
+      if (b0) b0.focus();
+      return;
+    }
+    if (state.listening && recog) { recog.stop(); return; }
+    if (state.chatBusy) return;
+    pauseSpeech();
+    const box = byId('chatIn');
+    const base = box && box.value.trim() ? box.value.trim() + ' ' : '';
+    let finalText = '';
+    recog = new SR();
+    recog.lang = 'th-TH';
+    recog.interimResults = true;
+    recog.continuous = false;
+    recog.onresult = function (ev) {
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript;
+      }
+      const b = byId('chatIn');
+      if (b) b.value = base + finalText + interim;
+      state.chatDraft = base + finalText + interim;
+    };
+    recog.onerror = function (ev) {
+      state.listening = false;
+      updateMicBtn();
+      const e = ev && ev.error;
+      if (e === 'not-allowed' || e === 'service-not-allowed') toast('ไม่ได้รับอนุญาตใช้ไมค์ ให้กด 🎤 บนแป้นพิมพ์แทน');
+      else if (e === 'no-speech') toast('ไม่ได้ยินเสียง ลองพูดใหม่อีกครั้ง');
+      else if (e && e !== 'aborted') toast('ไมค์มีปัญหา (' + e + ') ให้กด 🎤 บนแป้นพิมพ์แทน');
+    };
+    recog.onend = function () {
+      state.listening = false;
+      updateMicBtn();
+      const b = byId('chatIn');
+      const t = b ? b.value.trim() : '';
+      if (finalText.trim() && t && cfg.autoSend) {
+        state.voiceAsked = true;
+        sendChat(t);
+      }
+    };
+    try {
+      recog.start();
+      state.listening = true;
+      updateMicBtn();
+      toast('🎤 พูดได้เลย');
+    } catch (e) {
+      state.listening = false;
+      toast('เปิดไมค์ไม่ได้ ให้กด 🎤 บนแป้นพิมพ์แทน');
+    }
+  }
+
+  function genTopicId() {
+    const topics = topicsOfAnn();
+    if (topics.some(function (t) { return t.id === cfg.genTopic; })) return cfg.genTopic;
+    return topics[0] ? topics[0].id : '';
+  }
+
+  function genQuiz() {
+    const tid = genTopicId();
+    if (!tid || state.genBusy) return;
+    if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ต'); return; }
+    const total = Number(cfg.genCount) || 10;
+    const diff = cfg.genDiff || 'กลาง';
+    const got = [];
+    let rounds = 0;
+    const maxRounds = Math.ceil(total / 10) + 1;
+    state.genBusy = true;
+    state.genResult = null;
+    keepAwake(true);
+    function step() {
+      const left = total - got.length;
+      if (left <= 0 || rounds >= maxRounds) return Promise.resolve();
+      rounds++;
+      state.genMsg = '⏳ AI กำลังออกข้อสอบ... ได้แล้ว ' + got.length + '/' + total + ' ข้อ';
+      if (state.view === 'chat') render();
+      return api('genQuestions', { topic_id: tid, count: Math.min(10, left), difficulty: diff }, 300000).then(function (d) {
+        const qs = (d && d.questions) || [];
+        if (!qs.length) throw new Error('AI ไม่ได้ส่งข้อสอบที่ใช้ได้กลับมา ลองใหม่อีกครั้ง');
+        qs.forEach(function (q) { got.push(q); });
+        if (data) { data.questions = list('questions').concat(qs); saveJSON(K_DATA, data); }
+        return step();
+      });
+    }
+    step().then(function () {
+      state.genMsg = '✅ ออกข้อสอบเสร็จ ' + got.length + ' ข้อ บันทึกลงคลังแล้ว';
+    }).catch(function (err) {
+      state.genMsg = '⚠️ ' + err.message + (got.length ? ' (ได้มาแล้ว ' + got.length + ' ข้อ บันทึกไว้แล้ว)' : '');
+    }).then(function () {
+      state.genBusy = false;
+      state.genResult = got.length ? got : null;
+      keepAwake(false);
+      if (state.view === 'chat') render(); else toast(state.genMsg);
+    });
+  }
+
+  function processDocs(ids) {
+    if (!ids.length || state.procBusy) return;
+    if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ต'); return; }
+    state.procBusy = true;
+    keepAwake(true);
+    let i = 0, ok = 0, fail = 0, lastErr = '';
+    function done(stopMsg) {
+      state.procBusy = false;
+      keepAwake(false);
+      state.procMsg = (stopMsg ? '⚠️ หยุดก่อน: ' + stopMsg + NL : '') + '✅ สำเร็จ ' + ok + ' ฉบับ' +
+        (fail ? ' · ผิดพลาด ' + fail + ' ฉบับ' + (lastErr && !stopMsg ? NL + 'ล่าสุด: ' + lastErr : '') : '');
+      if (state.view === 'chat') render();
+      refresh(true);
+    }
+    function next() {
+      if (i >= ids.length) { done(''); return; }
+      const d = docById(ids[i]);
+      state.procMsg = '⏳ กำลังประมวลผล ' + (i + 1) + '/' + ids.length + ': ' + (d ? d.title : ids[i]) + NL +
+        'ฉบับละประมาณ 1-3 นาที ระหว่างนี้อย่าปิดแอป';
+      if (state.view === 'chat') render();
+      api('processDoc', { id: ids[i] }, 340000).then(function (r) {
+        ok++;
+        if (d) { d.status = 'ประมวลผลแล้ว'; d.char_count = r.chars; d.note = r.note; }
+        i++;
+        next();
+      }).catch(function (err) {
+        fail++;
+        lastErr = err.message;
+        const stop = AI_STOP.indexOf(err.code) > -1;
+        if (d) { if (!stop) d.status = 'ผิดพลาด'; d.note = err.message; }
+        if (stop) { done(err.message); return; }
+        i++;
+        next();
+      });
+    }
+    next();
   }
 
   /* =========== ส่วนแสดงผลหลัก =========== */
@@ -1030,6 +1272,11 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     h += '<button class="btn" data-act="quickListen" data-id="summary"' + (ns ? '' : ' disabled') + '>ฟังสรุปทุกหัวข้อ</button>';
     h += '<button class="btn" data-act="quickListen" data-id="qa"' + (nq ? '' : ' disabled') + '>ฟังถาม-ตอบ</button></div></section>';
 
+    h += '<section class="card"><h2>🤖 ผู้ช่วย AI</h2><div class="row wrap">' +
+      '<button class="btn" data-act="aiGo" data-id="chat">💬 ถาม AI</button>' +
+      '<button class="btn" data-act="aiGo" data-id="gen">🧠 AI ออกข้อสอบ</button>' +
+      '<button class="btn" data-act="aiGo" data-id="docs">📂 ประมวลผลเอกสาร</button></div></section>';
+
     h += '<h3 class="sec">หัวข้อที่ต้องอ่าน</h3>';
     h += topics.length ? '<div class="grid">' + topics.map(topicCard).join('') + '</div>'
       : '<div class="empty">ยังไม่มีหัวข้อ เพิ่มได้ที่ชีต "หัวข้อ"</div>';
@@ -1077,10 +1324,12 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       '<button class="btn" data-act="listenQA" data-id="' + esc(t.id) + '"' + (qs.length ? '' : ' disabled') + '>❓ ฟังถาม-ตอบ</button>' +
       '<button class="btn" data-act="practiceTopic" data-id="' + esc(t.id) + '"' + (qs.length ? '' : ' disabled') + '>✏️ ฝึกทำ (' + qs.length + ' ข้อ)</button>' +
       (wc ? '<button class="btn" data-act="reviewTopic" data-id="' + esc(t.id) + '">🔁 ทวนข้อผิด (' + wc + ')</button>' : '') +
+      '<button class="btn" data-act="chatTopicGo" data-id="' + esc(t.id) + '">💬 ถาม AI เรื่องนี้</button>' +
+      '<button class="btn" data-act="genTopicGo" data-id="' + esc(t.id) + '">🧠 AI ออกข้อสอบ</button>' +
       '</div></section>';
 
     h += '<h3 class="sec">เอกสาร (' + docs.length + ')</h3>';
-    if (!docs.length) h += '<div class="empty">ยังไม่มีเอกสารในหัวข้อนี้ เพิ่มได้ที่ชีต "เอกสาร"</div>';
+    if (!docs.length) h += '<div class="empty">ยังไม่มีเอกสารในหัวข้อนี้ วางไฟล์ในโฟลเดอร์ Drive ของหัวข้อนี้ แล้วไปที่ 💬 ถาม AI > 📂 เอกสาร</div>';
     docs.forEach(function (d) {
       const ds = sums.filter(function (s) { return s.doc_id === d.id; });
       h += '<section class="card"><div class="doc-head"><span class="dicon">' + docIcon(d.type) + '</span>' +
@@ -1103,8 +1352,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     const items = buildQueue(state.listenMode, tkey);
     const same = player.key === selKey();
     let h = '<section class="card"><h2>🎧 ฟังเนื้อหา</h2>';
-    h += '<div class="seg"><button class="' + (state.listenMode === 'summary' ? 'on' : '') + '" data-act="mode" data-id="summary">สรุปเนื้อหา</button>' +
-      '<button class="' + (state.listenMode === 'qa' ? 'on' : '') + '" data-act="mode" data-id="qa">ถาม-ตอบ</button></div>';
+    h += '<div class="seg">' + segBtn('mode', 'summary', 'สรุปเนื้อหา', state.listenMode) + segBtn('mode', 'qa', 'ถาม-ตอบ', state.listenMode) + '</div>';
     h += '<label class="field"><span>หัวข้อ</span><select data-change="listenTopic"><option value="all">ทุกหัวข้อในประกาศนี้</option>' +
       topics.map(function (t) {
         return '<option value="' + esc(t.id) + '"' + (t.id === tkey ? ' selected' : '') + '>' + esc(t.name) + '</option>';
@@ -1119,8 +1367,8 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       }).join('') + '</div></div></section>';
     if (!items.length) {
       h += state.listenMode === 'qa'
-        ? '<div class="empty">ยังไม่มีข้อสอบในหัวข้อนี้</div>'
-        : '<div class="empty">ยังไม่มีสรุปเนื้อหา<br>ช่วงที่ 4 AI จะสรุปให้อัตโนมัติ ตอนนี้ทดลองพิมพ์เองได้ในชีต "สรุปเนื้อหา"</div>';
+        ? '<div class="empty">ยังไม่มีข้อสอบในหัวข้อนี้ ให้ AI ออกข้อสอบได้ที่ 💬 ถาม AI > 🧠 AI ออกข้อสอบ</div>'
+        : '<div class="empty">ยังไม่มีสรุปเนื้อหา<br>ไปที่ 💬 ถาม AI > 📂 เอกสาร แล้วกดประมวลผล AI จะสรุปให้อัตโนมัติ</div>';
       return h;
     }
     h += '<section class="card"><div class="qlist">' + items.map(function (it, i) {
@@ -1135,8 +1383,8 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
   /* ---------- ข้อสอบ: หน้าแรก ---------- */
   function viewExam() {
     if (state.ses) return viewSession();
-    let h = '<div class="seg"><button class="' + (state.examTab !== 'stats' ? 'on' : '') + '" data-act="examTab" data-id="start">📝 เริ่มทำข้อสอบ</button>' +
-      '<button class="' + (state.examTab === 'stats' ? 'on' : '') + '" data-act="examTab" data-id="stats">📊 สถิติและประวัติ</button></div>';
+    let h = '<div class="seg">' + segBtn('examTab', 'start', '📝 เริ่มทำข้อสอบ', state.examTab === 'stats' ? 'stats' : 'start') +
+      segBtn('examTab', 'stats', '📊 สถิติและประวัติ', state.examTab === 'stats' ? 'stats' : 'start') + '</div>';
     h += pendingBanner();
     h += state.examTab === 'stats' ? viewExamStats() : viewExamStart();
     return h;
@@ -1195,7 +1443,7 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
       h += '<div class="banner"><div>จะได้ข้อสอบ <b>' + willGet + '</b> ข้อ จากที่มี ' + avail + ' ข้อ' +
         (mode === 'mock' ? ' · เวลา <b>' + mins + '</b> นาที' : '') + '</div></div>';
     } else {
-      h += '<div class="banner"><div>' + (mode === 'review' ? 'ไม่มีข้อที่ต้องทวนในหัวข้อที่เลือก 👍' : 'ยังไม่มีข้อสอบในหัวข้อที่เลือก') + '</div></div>';
+      h += '<div class="banner"><div>' + (mode === 'review' ? 'ไม่มีข้อที่ต้องทวนในหัวข้อที่เลือก 👍' : 'ยังไม่มีข้อสอบในหัวข้อที่เลือก ลองให้ AI ออกข้อสอบที่แท็บ 💬') + '</div></div>';
     }
     h += '<button class="btn primary block" data-act="startExam"' + (avail ? '' : ' disabled') + '>🚀 เริ่มทำข้อสอบ</button></section>';
     return h;
@@ -1280,593 +1528,4 @@ details.sums summary{cursor:pointer;color:var(--accent);font-weight:600;padding:
     const pass = Number(a.score) >= passPct();
     const am = {};
     (a.answers || []).forEach(function (x) { am[x.qid] = x; });
-    const wrongQs = r.qs.filter(function (q) { return am[q.id] && !am[q.id].correct; });
-
-    let h = '<button class="back" data-act="go" data-id="exam">‹ กลับหน้าข้อสอบ</button>';
-    h += '<section class="card center"><div class="muted">' + esc(a.mode) + ' · ' + fmtDate(a.date) + '</div>' +
-      '<div class="big-score ' + (pass ? 'pass' : 'fail') + '">' + round1(a.score) + '%</div>' +
-      '<div><b>' + (pass ? '🎉 ผ่านเกณฑ์' : '💪 ยังไม่ผ่านเกณฑ์') + '</b> <span class="muted">(เกณฑ์ ' + passPct() + '%)</span></div>' +
-      '<div class="stats mt">' + stat(a.correct, 'ตอบถูก') + stat(a.total - a.correct, 'ผิด / ไม่ตอบ') +
-      stat(fmtClock(a.time_used), 'เวลาที่ใช้') + stat(a.total, 'จำนวนข้อ') + '</div>' +
-      (a.time_limit ? '<div class="small muted mt">เวลาที่กำหนด ' + a.time_limit + ' นาที</div>' : '') + '</section>';
-
-    const byT = {};
-    r.qs.forEach(function (q) {
-      const x = am[q.id];
-      if (!x) return;
-      const k = q.topic_id || '-';
-      if (!byT[k]) byT[k] = { n: 0, c: 0 };
-      byT[k].n++;
-      if (x.correct) byT[k].c++;
-    });
-    const tk = Object.keys(byT);
-    if (tk.length > 1) {
-      h += '<section class="card"><h2>คะแนนแยกตามหัวข้อ</h2>' + tk.map(function (k) {
-        const t = topicById(k);
-        const p = Math.round(byT[k].c * 100 / byT[k].n);
-        const ok = p >= passPct();
-        return '<div class="trow"><div class="row"><span class="grow">' + esc(t ? t.name : 'ไม่ระบุหัวข้อ') + '</span>' +
-          '<b class="' + (ok ? 'pass' : 'fail') + '">' + byT[k].c + '/' + byT[k].n + ' (' + p + '%)</b></div>' +
-          '<div class="bar mt"><i style="width:' + p + '%;background:var(' + (ok ? '--ok' : '--bad') + ')"></i></div></div>';
-      }).join('') + '</section>';
-    }
-
-    h += '<div class="row wrap" style="margin-bottom:14px">' +
-      (wrongQs.length ? '<button class="btn primary" data-act="retryWrong">🔁 ฝึกซ้ำเฉพาะข้อที่ผิด (' + wrongQs.length + ')</button>' : '') +
-      '<button class="btn" data-act="go" data-id="exam">🔄 ทำชุดใหม่</button></div>';
-
-    const f = r.filter || 'all';
-    h += '<section class="card"><h2>ทวนคำตอบ</h2><div class="seg">' +
-      '<button class="' + (f === 'all' ? 'on' : '') + '" data-act="resFilter" data-id="all">ทั้งหมด (' + r.qs.length + ')</button>' +
-      '<button class="' + (f === 'wrong' ? 'on' : '') + '" data-act="resFilter" data-id="wrong">ผิด (' + wrongQs.length + ')</button>' +
-      '<button class="' + (f === 'right' ? 'on' : '') + '" data-act="resFilter" data-id="right">ถูก (' + (r.qs.length - wrongQs.length) + ')</button></div>';
-    let shown = 0;
-    r.qs.forEach(function (q, i) {
-      const x = am[q.id] || { chosen: '', correct: false };
-      if (f === 'wrong' && x.correct) return;
-      if (f === 'right' && !x.correct) return;
-      shown++;
-      const t = topicById(q.topic_id);
-      h += '<div class="rv"><div class="small muted">ข้อ ' + (i + 1) + (t ? ' · ' + esc(t.name) : '') + ' · ' +
-        (x.correct ? '<span class="pass">✅ ถูก</span>' : (x.chosen ? '<span class="fail">❌ ผิด</span>' : '<span class="fail">⭕ ไม่ได้ตอบ</span>')) + '</div>' +
-        '<div class="qtext">' + br(q.question) + '</div>';
-      KEYS.forEach(function (k, j) {
-        if (!q[k]) return;
-        const L = LETTERS[j];
-        let c = 'opt';
-        if (L === String(q.answer)) c += ' correct';
-        else if (L === x.chosen) c += ' wrong';
-        h += '<div class="' + c + '"><span class="ol">' + L + '</span><span class="grow">' + br(q[k]) + '</span></div>';
-      });
-      if (q.explanation) h += '<div class="fb"><div>💡 ' + br(q.explanation) + '</div>' +
-        (q.reference ? '<div class="small muted mt">อ้างอิง: ' + esc(q.reference) + '</div>' : '') + '</div>';
-      h += '<div class="row wrap mt"><button class="btn sm" data-act="speakExp" data-id="' + esc(q.id) + '">🔊 ฟังเฉลย</button>' +
-        '<button class="btn sm danger" data-act="flagQ" data-id="' + esc(q.id) + '">⚠️ แจ้งข้อนี้ผิด</button></div></div>';
-    });
-    if (!shown) h += '<div class="empty">ไม่มีข้อในกลุ่มนี้</div>';
-    h += '</section>';
-    return h;
-  }
-
-  /* ---------- ข้อสอบ: สถิติ ---------- */
-  function chartSvg(items) {
-    const W = 600, H = 220, L = 36, R = 14, T = 12, B = 28;
-    const pw = W - L - R, ph = H - T - B, n = items.length;
-    function x(i) { return n === 1 ? L + pw / 2 : L + i * pw / (n - 1); }
-    function y(v) { return T + ph - (Math.max(0, Math.min(100, Number(v) || 0)) / 100) * ph; }
-    let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="กราฟคะแนน">';
-    [0, 25, 50, 75, 100].forEach(function (v) {
-      s += '<line class="ch-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>' +
-        '<text class="ch-txt" x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
-    });
-    s += '<line class="ch-pass" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(passPct()) + '" y2="' + y(passPct()) + '"/>';
-    if (n > 1) {
-      s += '<polyline class="ch-line" points="' + items.map(function (h, i) {
-        return x(i).toFixed(1) + ',' + y(h.score).toFixed(1);
-      }).join(' ') + '"/>';
-    }
-    items.forEach(function (h, i) {
-      s += '<circle class="ch-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(h.score).toFixed(1) + '" r="5"/>';
-    });
-    s += '<text class="ch-txt" x="' + L + '" y="' + (H - 6) + '">เก่า</text>' +
-      '<text class="ch-txt" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">ล่าสุด</text></svg>';
-    return s;
-  }
-
-  function viewExamStats() {
-    const topics = topicsOfAnn();
-    const hist = allHistory();
-    const st = qStats();
-    const pass = passPct();
-    const pool = questionsIn(topics.map(function (t) { return t.id; }));
-    const done = pool.filter(function (q) { return (st[q.id] || {}).n > 0; }).length;
-    const last10 = hist.slice(-10);
-    let avg = 0, best = 0;
-    last10.forEach(function (h) { avg += Number(h.score) || 0; });
-    if (last10.length) avg = round1(avg / last10.length);
-    hist.forEach(function (h) { best = Math.max(best, Number(h.score) || 0); });
-
-    let h = '<section class="card"><h2>📊 ภาพรวม</h2><div class="stats">' +
-      stat(hist.length, 'ชุดที่ทำแล้ว') + stat(avg + '%', 'เฉลี่ย 10 ครั้งหลัง') +
-      stat(round1(best) + '%', 'คะแนนสูงสุด') + stat(done + '/' + pool.length, 'ข้อที่เคยทำ') + '</div></section>';
-
-    if (hist.length) {
-      h += '<section class="card"><h2>📈 พัฒนาการคะแนน</h2>' + chartSvg(hist.slice(-20)) +
-        '<div class="small muted">20 ครั้งล่าสุด · เส้นประสีเขียว = เกณฑ์ผ่าน ' + pass + '%</div></section>';
-    }
-
-    const rows = topics.map(function (t) {
-      const qs = questionsIn([t.id]);
-      let n = 0, w = 0, cov = 0, wr = 0;
-      qs.forEach(function (q) {
-        const s = st[q.id];
-        if (!s) return;
-        n += s.n; w += s.w;
-        if (s.n) cov++;
-        if (s.last === 'ผิด') wr++;
-      });
-      return { t: t, qs: qs.length, cov: cov, wr: wr, acc: n ? Math.round((n - w) * 100 / n) : -1 };
-    }).sort(function (a, b) { return (a.acc < 0 ? 1000 : a.acc) - (b.acc < 0 ? 1000 : b.acc); });
-
-    h += '<section class="card"><h2>🎯 ความแม่นแยกตามหัวข้อ</h2>';
-    if (rows.length && rows[0].acc >= 0 && rows[0].acc < pass) {
-      h += '<div class="banner"><div>💡 หัวข้อที่ควรเน้น: <b>' + esc(rows[0].t.name) + '</b></div></div>';
-    }
-    h += rows.length ? rows.map(function (r) {
-      const ok = r.acc >= pass;
-      return '<div class="trow"><div class="row"><b class="grow">' + esc(r.t.name) + '</b>' +
-        (r.acc < 0 ? '<span class="small muted">ยังไม่เคยทำ</span>' : '<b class="' + (ok ? 'pass' : 'fail') + '">' + r.acc + '%</b>') + '</div>' +
-        '<div class="bar mt"><i style="width:' + Math.max(r.acc, 0) + '%;background:var(' + (ok ? '--ok' : '--bad') + ')"></i></div>' +
-        '<div class="row wrap small muted mt"><span class="grow">ทำแล้ว ' + r.cov + '/' + r.qs + ' ข้อ' + (r.wr ? ' · ค้างทวน ' + r.wr + ' ข้อ' : '') + '</span>' +
-        (r.qs ? '<button class="btn sm" data-act="practiceTopic" data-id="' + esc(r.t.id) + '">✏️ ฝึก</button>' : '') +
-        (r.wr ? '<button class="btn sm" data-act="reviewTopic" data-id="' + esc(r.t.id) + '">🔁 ทวน</button>' : '') + '</div></div>';
-    }).join('') : '<div class="empty">ยังไม่มีหัวข้อ</div>';
-    h += '</section>';
-
-    const often = pool.filter(function (q) { return (st[q.id] || {}).w > 0; })
-      .sort(function (a, b) { return st[b.id].w - st[a.id].w; }).slice(0, 10);
-    if (often.length) {
-      h += '<section class="card"><h2>⚠️ ข้อที่ผิดบ่อย</h2>' + often.map(function (q) {
-        const s = st[q.id];
-        return '<div class="trow"><div>' + esc(shortText(q.question, 120)) + '</div>' +
-          '<div class="small muted">ผิด ' + s.w + ' จาก ' + s.n + ' ครั้ง · ล่าสุด' + (s.last === 'ผิด' ? '<span class="fail"> ผิด</span>' : '<span class="pass"> ถูก</span>') +
-          ' · เฉลยข้อ ' + esc(q.answer) + '</div></div>';
-      }).join('') + '</section>';
-    }
-
-    h += '<section class="card"><h2>🕘 ประวัติการสอบ</h2>';
-    if (!hist.length) h += '<div class="empty">ยังไม่มีประวัติการสอบ</div>';
-    else {
-      h += hist.slice(-30).reverse().map(function (x) {
-        const ok = Number(x.score) >= pass;
-        const lbl = topicLabel(x.topic_ids);
-        return '<button class="hrow" data-act="openHist" data-id="' + esc(x.id) + '">' +
-          '<span class="score-pill ' + (ok ? 'pass' : 'fail') + '">' + round1(x.score) + '%</span>' +
-          '<span class="grow"><b>' + esc(x.mode || '') + '</b> <span class="small muted">' + fmtDate(x.date) + '</span>' +
-          '<span class="qt">ถูก ' + x.correct + '/' + x.total + ' ข้อ' + (Number(x.time_used) ? ' · ' + fmtDur(x.time_used) : '') +
-          (lbl ? ' · ' + esc(lbl) : '') + (x.synced === false ? ' · ☁️ รอส่ง' : '') + '</span></span>' +
-          '<span class="muted">›</span></button>';
-      }).join('');
-      h += '<div class="small muted mt">แตะเพื่อดูเฉลยย้อนหลัง (ได้เฉพาะชุดที่ทำบนเครื่องนี้ 30 ชุดล่าสุด)</div>';
-    }
-    h += '</section>';
-    return h;
-  }
-
-  /* ---------- ถาม AI (ช่วงที่ 4) ---------- */
-  function viewChat() {
-    return '<section class="card"><h2>💬 ถาม AI</h2>' +
-      '<p>แชตถาม-ตอบจากเอกสาร (พูดผ่านไมค์ได้) และให้ AI ออกข้อสอบ จะใช้งานได้ใน <b>ช่วงที่ 4</b></p>' +
-      '<p class="muted">ช่วงนั้นต้องใช้คีย์ Gemini ซึ่งจะสอนสมัครทีละขั้นครับ</p></section>';
-  }
-
-  /* ---------- ตั้งค่า ---------- */
-  function selectField(label, key, opts, cur) {
-    return '<label class="field"><span>' + esc(label) + '</span><select data-change="' + key + '">' +
-      opts.map(function (o) {
-        return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
-      }).join('') + '</select></label>';
-  }
-
-  function viewSettings() {
-    const vs = thaiVoices();
-    const kb = Math.round(((localStorage.getItem(K_DATA) || '').length * 2) / 1024);
-    let h = '<section class="card"><h2>🔗 การเชื่อมต่อ</h2>' + connFields() +
-      '<button class="btn primary" data-act="connect">ทดสอบและบันทึก</button></section>';
-    h += '<section class="card"><h2>🎨 การแสดงผล</h2>' +
-      selectField('ธีม', 'theme', [['auto', 'ตามระบบเครื่อง'], ['light', 'สว่าง'], ['dark', 'กลางคืน']], cfg.theme) +
-      selectField('ขนาดตัวอักษร', 'font', [['normal', 'ปกติ'], ['large', 'ใหญ่'], ['xlarge', 'ใหญ่มาก']], cfg.font) + '</section>';
-    h += '<section class="card"><h2>🔊 เสียงอ่าน</h2>';
-    if (vs.length) {
-      h += selectField('เสียงภาษาไทย', 'voice', [['', 'อัตโนมัติ']].concat(vs.map(function (v) { return [v.name, v.name]; })), cfg.voice);
-    } else {
-      h += '<div class="banner">⚠️ ยังไม่พบเสียงภาษาไทยในเครื่อง บนไอแพดไปที่ การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียง</div>';
-    }
-    h += selectField('เวลาคิดก่อนเฉลย (โหมดฟังถาม-ตอบ)', 'qaPause',
-      [['3', '3 วินาที'], ['5', '5 วินาที'], ['10', '10 วินาที'], ['15', '15 วินาที']], String(cfg.qaPause)) +
-      '<button class="btn" data-act="testVoice">▶ ทดสอบเสียง</button></section>';
-    h += '<section class="card"><h2>📝 ข้อมูลการสอบ</h2>' +
-      '<p class="muted">รอส่งขึ้น Google Sheet: ผลสอบ ' + pendingCount() + ' ชุด · แจ้งข้อผิด ' + loadJSON(K_FLAGS, []).length + ' รายการ</p>' +
-      '<div class="row wrap"><button class="btn" data-act="sync">⇪ ส่งตอนนี้</button>' +
-      '<button class="btn danger" data-act="clearHistory">ล้างประวัติและสถิติการสอบทั้งหมด</button></div>' +
-      '<p class="small muted">การล้างจะลบชีต "ประวัติการสอบ" และรีเซ็ตสถิติรายข้อ แต่ข้อสอบในคลังไม่หาย</p></section>';
-    h += '<section class="card"><h2>💾 ข้อมูลในเครื่อง</h2>' +
-      '<p class="muted">ข้อมูลล่าสุด: ' + fmtDate(data && data.savedAt) + ' · ขนาดประมาณ ' + kb + ' KB</p>' +
-      '<div class="row wrap"><button class="btn" data-act="sync">⟳ อัปเดตข้อมูล</button>' +
-      '<button class="btn danger" data-act="clearData">ล้างข้อมูลในเครื่อง</button>' +
-      '<button class="btn danger" data-act="resetAll">ลบการตั้งค่าทั้งหมด</button></div></section>';
-    h += '<p class="small muted">แอป v' + APP_VERSION + ' · หลังบ้าน v' + esc((data && data.version) || '-') + '</p>';
-    return h;
-  }
-
-  const VIEWS = { home: viewHome, learn: viewLearn, topic: viewTopic, listen: viewListen,
-    exam: viewExam, result: viewResult, chat: viewChat, settings: viewSettings };
-
-  /* =========== การกดปุ่ม =========== */
-  function goTo(view) { state.view = view; render(); window.scrollTo(0, 0); }
-
-  const ACTIONS = {
-    go: function (id) { goTo(id); },
-    openTopic: function (id) { state.topicId = id; goTo('topic'); },
-    sync: function () { refresh(false); },
-    connect: function (id, el) {
-      const url = byId('fUrl').value.trim();
-      const pin = byId('fPin').value.trim();
-      const msg = byId('fMsg');
-      function fail(t) { msg.textContent = '❌ ' + t; msg.className = 'msg bad'; }
-      if (url.indexOf('https://script.google.com/') !== 0 || url.slice(-5) !== '/exec') {
-        fail('ลิงก์ต้องขึ้นต้นด้วย https://script.google.com/ และลงท้ายด้วย /exec'); return;
-      }
-      if (pin.length < 4) { fail('กรุณาใส่ PIN'); return; }
-      if (!navigator.onLine) { fail('ต้องต่ออินเทอร์เน็ตก่อน'); return; }
-      const fromSettings = state.view === 'settings' && isReady();
-      const old = { apiUrl: cfg.apiUrl, pin: cfg.pin };
-      cfg.apiUrl = url;
-      cfg.pin = pin;
-      el.disabled = true;
-      el.textContent = 'กำลังเชื่อมต่อ...';
-      api('bootstrap').then(function (d) {
-        d.savedAt = new Date().toISOString();
-        data = d;
-        saveJSON(K_DATA, d);
-        saveCfg();
-        applyServerSettings();
-        toast('เชื่อมต่อสำเร็จ ✅');
-        state.view = fromSettings ? 'settings' : 'home';
-        render();
-      }).catch(function (err) {
-        cfg.apiUrl = old.apiUrl;
-        cfg.pin = old.pin;
-        fail(err.message);
-        el.disabled = false;
-        el.textContent = fromSettings ? 'ทดสอบและบันทึก' : 'เชื่อมต่อ';
-      });
-    },
-
-    // ฟัง
-    quickListen: function (id) { state.listenMode = id; state.listenTopic = 'all'; goTo('listen'); playSelection(0); },
-    listenTopic: function (id) { state.listenMode = 'summary'; state.listenTopic = id; goTo('listen'); playSelection(0); },
-    listenQA: function (id) { state.listenMode = 'qa'; state.listenTopic = id; goTo('listen'); playSelection(0); },
-    mode: function (id) { state.listenMode = id; render(); },
-    playAt: function (id) {
-      const i = Number(id);
-      if (player.key === selKey() && player.queue.length) playItem(i); else playSelection(i);
-    },
-    pToggleSel: function () {
-      if (player.key === selKey() && player.queue.length) togglePlay(); else playSelection(0);
-    },
-    pToggle: function () { togglePlay(); },
-    pNext: function () { nextItem(); },
-    pPrev: function () { prevItem(); },
-    pStop: function () { stopAll(); },
-    rate: function (id) {
-      cfg.rate = Number(id) || 1;
-      cfg.rateTouched = true;
-      saveCfg();
-      const chips = document.querySelectorAll('[data-act="rate"]');
-      for (let i = 0; i < chips.length; i++) chips[i].classList.toggle('on', Number(chips[i].getAttribute('data-id')) === cfg.rate);
-      if (player.playing) { player.token++; startSpeak(player.token); }
-    },
-    speakOne: function (id) {
-      const s = list('summaries').find(function (x) { return x.id === id; });
-      if (!s) return;
-      const d = docById(s.doc_id);
-      const t = topicById(sumTopic(s));
-      speakText(s.id, d ? d.title : (t ? t.name : ''), s.text);
-    },
-    openDoc: function (id) {
-      const d = docById(id);
-      if (!d || !d.open_url) return;
-      if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ตเพื่อเปิดไฟล์ต้นฉบับ'); return; }
-      window.open(d.open_url, '_blank', 'noopener');
-    },
-
-    // ข้อสอบ: ตั้งค่า
-    examTab: function (id) { state.examTab = id; render(); },
-    exMode: function (id) { cfg.exMode = id; saveCfg(); render(); },
-    exTopic: function (id) {
-      if (id === 'all') cfg.exTopics = [];
-      else {
-        const i = cfg.exTopics.indexOf(id);
-        if (i > -1) cfg.exTopics.splice(i, 1); else cfg.exTopics.push(id);
-      }
-      saveCfg();
-      render();
-    },
-    exCountSet: function (id) { cfg.exCount = Number(id); saveCfg(); render(); },
-    exMinSet: function (id) { cfg.exMin = Number(id); saveCfg(); render(); },
-    quickExam: function (id) {
-      if (state.ses) { toast('มีข้อสอบทำค้างอยู่'); goTo('exam'); return; }
-      cfg.exMode = id;
-      cfg.exTopics = [];
-      saveCfg();
-      state.examTab = 'start';
-      goTo('exam');
-    },
-    startExam: function () {
-      const s = selectedTopics();
-      startSession({ mode: cfg.exMode, tids: s.tids, count: examCount(), minutes: examMinutes(), smart: cfg.exSmart });
-    },
-    practiceTopic: function (id) {
-      if (!guardSession()) return;
-      startSession({ mode: 'practice', tids: [id], count: examCount(), smart: true });
-    },
-    reviewTopic: function (id) {
-      if (!guardSession()) return;
-      startSession({ mode: 'review', tids: [id], count: 999 });
-    },
-
-    // ข้อสอบ: ระหว่างทำ
-    pick: function (L) {
-      const s = state.ses;
-      if (!s) return;
-      const q = s.qs[s.cur];
-      if (s.mode !== 'mock' && s.answers[q.id]) return;
-      s.answers[q.id] = L;
-      saveSession();
-      render();
-      if (s.mode === 'mock' && s.cur + 1 < s.qs.length) {
-        clearTimeout(advTimer);
-        const at = s.cur;
-        advTimer = setTimeout(function () {
-          if (state.ses === s && s.cur === at && state.view === 'exam') {
-            s.cur++;
-            saveSession();
-            render();
-            window.scrollTo(0, 0);
-          }
-        }, 350);
-      }
-    },
-    sesNav: function (d) {
-      const s = state.ses;
-      if (!s) return;
-      clearTimeout(advTimer);
-      s.cur = Math.max(0, Math.min(s.qs.length - 1, s.cur + Number(d)));
-      saveSession();
-      render();
-      window.scrollTo(0, 0);
-    },
-    jump: function (i) {
-      const s = state.ses;
-      if (!s) return;
-      clearTimeout(advTimer);
-      s.cur = Number(i);
-      saveSession();
-      render();
-      window.scrollTo(0, 0);
-    },
-    toggleGrid: function () { state.gridOpen = !state.gridOpen; render(); },
-    markQ: function () {
-      const s = state.ses;
-      if (!s) return;
-      const q = s.qs[s.cur];
-      if (s.marks[q.id]) delete s.marks[q.id]; else s.marks[q.id] = true;
-      saveSession();
-      render();
-    },
-    speakQ: function () {
-      const s = state.ses;
-      if (!s) return;
-      const q = s.qs[s.cur];
-      let t = 'ข้อ ' + (s.cur + 1) + '. ' + q.question;
-      KEYS.forEach(function (k, i) { if (q[k]) t += NL + 'ข้อ ' + LETTERS[i] + '. ' + q[k]; });
-      speakText('q' + q.id, 'โจทย์ข้อ ' + (s.cur + 1), t);
-    },
-    speakExp: function (id) {
-      const q = findQ(id);
-      if (!q) return;
-      const ai = LETTERS.indexOf(String(q.answer));
-      let t = 'เฉลย ข้อ ' + q.answer + (ai > -1 && q[KEYS[ai]] ? '. ' + q[KEYS[ai]] : '');
-      if (q.explanation) t += NL + 'คำอธิบาย. ' + q.explanation;
-      speakText('e' + q.id, 'เฉลย', t);
-    },
-    finish: function () {
-      const s = state.ses;
-      if (!s) return;
-      if (s.mode === 'mock') {
-        const un = s.qs.length - answeredCount(s);
-        const mk = Object.keys(s.marks).length;
-        let msg = 'ส่งข้อสอบเลยไหม?';
-        if (un) msg += NL + '• ยังไม่ได้ตอบ ' + un + ' ข้อ (จะนับเป็นผิด)';
-        if (mk) msg += NL + '• มีข้อที่ทำเครื่องหมาย ★ ไว้ ' + mk + ' ข้อ';
-        if (!window.confirm(msg)) return;
-      }
-      finishSession(false);
-    },
-    discard: function () {
-      if (!window.confirm('ทิ้งข้อสอบชุดนี้? ผลจะไม่ถูกบันทึก')) return;
-      endSession();
-      goTo('exam');
-    },
-    flagQ: function (id) {
-      const reason = window.prompt('ข้อนี้ผิดอย่างไร? (เช่น เฉลยผิด โจทย์กำกวม ตัวเลือกซ้ำ)', 'เฉลยผิด');
-      if (reason === null) return;
-      const fl = loadJSON(K_FLAGS, []);
-      fl.push({ id: id, reason: reason });
-      saveJSON(K_FLAGS, fl);
-      if (data) {
-        data.questions = list('questions').filter(function (q) { return q.id !== id; });
-        saveJSON(K_DATA, data);
-      }
-      toast(navigator.onLine ? 'แจ้งแล้ว ข้อนี้จะไม่ถูกสุ่มมาอีก' : 'บันทึกไว้แล้ว จะส่งเมื่อออนไลน์');
-      syncAll().catch(function () { /* ส่งรอบหน้า */ });
-    },
-
-    // ข้อสอบ: ผลสอบ
-    resFilter: function (id) { if (state.res) { state.res.filter = id; render(); } },
-    retryWrong: function () {
-      const r = state.res;
-      if (!r) return;
-      const am = {};
-      (r.attempt.answers || []).forEach(function (x) { am[x.qid] = x; });
-      const qs = r.qs.filter(function (q) { return am[q.id] && !am[q.id].correct; });
-      if (!guardSession()) return;
-      startSession({ mode: 'review', qs: qs });
-    },
-    openHist: function (id) {
-      const a = localAttempts().find(function (x) { return x.id === id; });
-      if (!a || !Array.isArray(a.answers)) { toast('ดูเฉลยย้อนหลังได้เฉพาะชุดที่ทำบนเครื่องนี้'); return; }
-      const qs = a.answers.map(function (x) { return list('questions').find(function (q) { return q.id === x.qid; }); })
-        .filter(function (q) { return q; }).map(snapQ);
-      if (!qs.length) { toast('ไม่พบข้อสอบของชุดนี้ในคลังแล้ว'); return; }
-      state.res = { attempt: a, qs: qs, filter: 'all' };
-      goTo('result');
-    },
-    clearHistory: function () {
-      if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ตก่อน'); return; }
-      if (!window.confirm('ล้างประวัติการสอบและสถิติทั้งหมด? (ข้อสอบในคลังไม่หาย)')) return;
-      api('clearHistory').then(function () {
-        localStorage.removeItem(K_LOCAL);
-        state.res = null;
-        toast('ล้างประวัติแล้ว');
-        refresh(true);
-      }).catch(function (err) { toast(err.message); });
-    },
-
-    // อื่น ๆ
-    install: function () {
-      if (!state.installEvt) return;
-      state.installEvt.prompt();
-      state.installEvt = null;
-      render();
-    },
-    hideInstall: function () { localStorage.setItem(K_HIDE, '1'); render(); },
-    testVoice: function () { speakText('test', 'ทดสอบเสียง', 'สวัสดีครับ นี่คือเสียงอ่านภาษาไทย สำหรับติวสอบหัวหน้าฝ่ายช่าง'); },
-    clearData: function () {
-      if (!window.confirm('ล้างข้อมูลที่เก็บในเครื่อง? (ข้อมูลใน Google Sheet ไม่หาย โหลดใหม่ได้)')) return;
-      stopAll();
-      localStorage.removeItem(K_DATA);
-      data = null;
-      render();
-    },
-    resetAll: function () {
-      if (pendingCount() && !window.confirm('มีผลสอบ ' + pendingCount() + ' ชุดที่ยังไม่ได้ส่งขึ้นชีต จะหายไปด้วย ยืนยัน?')) return;
-      if (!window.confirm('ลบลิงก์ PIN และข้อมูลทั้งหมดในเครื่อง?')) return;
-      stopAll();
-      endSession();
-      [K_DATA, K_CFG, K_LOCAL, K_FLAGS].forEach(function (k) { localStorage.removeItem(k); });
-      cfg = Object.assign({}, DEFAULT_CFG);
-      data = null;
-      state.view = 'home';
-      render();
-    }
-  };
-
-  function clampNum(v) {
-    const n = parseInt(v, 10);
-    return n > 0 ? Math.min(n, 300) : 0;
-  }
-
-  const CHANGES = {
-    ann: function (v) { cfg.annId = v; cfg.exTopics = []; saveCfg(); state.listenTopic = 'all'; render(); },
-    listenTopic: function (v) { state.listenTopic = v; render(); },
-    theme: function (v) { cfg.theme = v; saveCfg(); applyTheme(); },
-    font: function (v) { cfg.font = v; saveCfg(); applyTheme(); },
-    voice: function (v) { cfg.voice = v; saveCfg(); },
-    qaPause: function (v) { cfg.qaPause = Number(v) || 5; saveCfg(); player.key = ''; },
-    exCount: function (v) { const n = clampNum(v); if (n) { cfg.exCount = n; saveCfg(); } render(); },
-    exMin: function (v) { const n = clampNum(v); if (n) { cfg.exMin = n; saveCfg(); } render(); },
-    exSmart: function (v, el) { cfg.exSmart = !!el.checked; saveCfg(); }
-  };
-
-  document.addEventListener('click', function (e) {
-    const el = e.target.closest ? e.target.closest('[data-act]') : null;
-    if (!el || el.disabled) return;
-    const fn = ACTIONS[el.getAttribute('data-act')];
-    if (fn) fn(el.getAttribute('data-id'), el, e);
-  });
-  document.addEventListener('change', function (e) {
-    const el = e.target;
-    const k = el && el.getAttribute ? el.getAttribute('data-change') : null;
-    if (k && CHANGES[k]) CHANGES[k](el.value, el);
-  });
-
-  // แป้นพิมพ์ (ไอแพดที่ต่อคีย์บอร์ด): 1-4 เลือกคำตอบ, ลูกศรซ้าย/ขวา เปลี่ยนข้อ
-  document.addEventListener('keydown', function (e) {
-    if (state.view !== 'exam' || !state.ses) return;
-    const tg = e.target && e.target.tagName;
-    if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
-    const i = ['1', '2', '3', '4'].indexOf(e.key);
-    if (i > -1) {
-      const q = state.ses.qs[state.ses.cur];
-      if (q[KEYS[i]]) ACTIONS.pick(LETTERS[i]);
-      e.preventDefault();
-    } else if (e.key === 'ArrowRight') {
-      ACTIONS.sesNav('1');
-    } else if (e.key === 'ArrowLeft') {
-      ACTIONS.sesNav('-1');
-    }
-  });
-
-  /* =========== เหตุการณ์ของระบบ =========== */
-  window.addEventListener('online', function () { state.online = true; renderHeader(); refresh(true); });
-  window.addEventListener('offline', function () { state.online = false; renderHeader(); });
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    state.installEvt = e;
-    if (state.view === 'home' && isReady()) render();
-  });
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState !== 'visible') return;
-    if (state.ses && state.ses.mode === 'mock') tick();
-    if (!player.playing) return;
-    keepAwake(true);
-    try {
-      const ss = window.speechSynthesis;
-      ss.resume();
-      if (!ss.speaking && !ss.pending) { player.token++; startSpeak(player.token); }
-    } catch (e) { /* ไม่เป็นไร */ }
-  });
-  if (window.matchMedia) {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mq.addEventListener) mq.addEventListener('change', applyTheme);
-    else if (mq.addListener) mq.addListener(applyTheme);
-  }
-  if (hasTTS()) {
-    window.speechSynthesis.onvoiceschanged = function () { if (state.view === 'settings') render(); };
-  }
-
-  function registerSW() {
-    if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
-    navigator.serviceWorker.register('./sw.js').then(function (reg) {
-      reg.addEventListener('updatefound', function () {
-        const nw = reg.installing;
-        if (!nw) return;
-        nw.addEventListener('statechange', function () {
-          if (nw.state === 'activated' && hadController) toast('อัปเดตแอปแล้ว ปิดแล้วเปิดใหม่เพื่อใช้เวอร์ชันล่าสุด');
-        });
-      });
-    }).catch(function () { /* ไม่เป็นไร */ });
-  }
-
-  /* =========== เริ่มทำงาน =========== */
-  makeAppleIcon();
-  render();
-  if (state.ses && state.ses.mode === 'mock') startTimer();
-  if (cfg.apiUrl && cfg.pin) refresh(true);
-  registerSW();
-})();
-</script>
-</body>
-</html>
+    const wrongQs = r.
