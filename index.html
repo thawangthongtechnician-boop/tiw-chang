@@ -203,6 +203,14 @@ input[type=range]{flex:1;width:100%;min-width:0;height:34px;accent-color:var(--p
 <div id="toast"></div>
 
 <script>
+window.addEventListener('error', function (e) {
+  var d = document.getElementById('main');
+  if (!d || d.innerHTML) return;
+  d.innerHTML = '<div style="margin:16px;padding:14px;border:2px solid #dc2626;border-radius:12px;background:#fff;color:#111;font:14px/1.6 sans-serif">' +
+    '<b>แอปเปิดไม่ขึ้น</b><br>' + String(e.message).replace(/</g, '&lt;') + '<br><small>บรรทัด ' + e.lineno + '</small></div>';
+});
+</script>
+<script>
 (function () {
   'use strict';
 
@@ -1755,4 +1763,329 @@ input[type=range]{flex:1;width:100%;min-width:0;height:34px;accent-color:var(--p
     goDocsPend: function () { state.docTopic = 'all'; goTo('docs'); ACTIONS.procAll(); },
     docTopic: function (id) { state.docTopic = id; render(); },
     toggleDoc: function (id) { state.openDoc = state.openDoc === id ? '' : id; refreshDocsUI(); },
-    
+    // ข้อสอบ
+    examTab: function (id) { state.examTab = id; render(); },
+    exMode: function (id) { cfg.exMode = id; saveCfg(); render(); },
+    exTopic: function (id) {
+      if (id === 'all') cfg.exTopics = [];
+      else {
+        const i = cfg.exTopics.indexOf(id);
+        if (i > -1) cfg.exTopics.splice(i, 1); else cfg.exTopics.push(id);
+      }
+      saveCfg();
+      render();
+    },
+    exCountSet: function (id) { cfg.exCount = Number(id); saveCfg(); render(); },
+    exMinSet: function (id) { cfg.exMin = Number(id); saveCfg(); render(); },
+    startExam: function () {
+      if (!guardSession()) return;
+      startSession({ mode: cfg.exMode, tids: selectedTopics().tids, count: examCount(), minutes: examMinutes(), smart: cfg.exSmart });
+    },
+    quickExam: function (id) {
+      if (!guardSession()) return;
+      cfg.exMode = id;
+      saveCfg();
+      startSession({ mode: id, tids: topicsOfAnn().map(function (t) { return t.id; }), count: examCount(), minutes: examMinutes(), smart: cfg.exSmart });
+    },
+    practiceTopic: function (id) {
+      if (!guardSession()) return;
+      startSession({ mode: 'practice', tids: [id], count: examCount(), smart: cfg.exSmart });
+    },
+    reviewTopic: function (id) {
+      if (!guardSession()) return;
+      startSession({ mode: 'review', tids: [id], count: examCount() });
+    },
+    retryWrong: function () {
+      const r = state.res;
+      if (!r) return;
+      const am = {};
+      (r.attempt.answers || []).forEach(function (x) { am[x.qid] = x; });
+      const wrong = r.qs.filter(function (q) { return am[q.id] && !am[q.id].correct; });
+      if (!wrong.length) { toast('ไม่มีข้อที่ผิด'); return; }
+      if (!guardSession()) return;
+      startSession({ mode: 'practice', qs: wrong, count: wrong.length });
+    },
+    startGenExam: function () {
+      const qs = state.genResult;
+      if (!qs || !qs.length) return;
+      if (!guardSession()) return;
+      startSession({ mode: 'practice', qs: qs, count: qs.length });
+    },
+    pick: function (id) {
+      const s = state.ses;
+      if (!s) return;
+      const q = s.qs[s.cur];
+      if (s.mode !== 'mock' && s.answers[q.id]) return;
+      s.answers[q.id] = id;
+      saveSession();
+      render();
+    },
+    sesNav: function (id) {
+      const s = state.ses;
+      if (!s) return;
+      s.cur = Math.max(0, Math.min(s.qs.length - 1, s.cur + Number(id)));
+      saveSession();
+      render();
+      window.scrollTo(0, 0);
+    },
+    jump: function (id) {
+      const s = state.ses;
+      if (!s) return;
+      s.cur = Math.max(0, Math.min(s.qs.length - 1, Number(id)));
+      saveSession();
+      render();
+      window.scrollTo(0, 0);
+    },
+    toggleGrid: function () { state.gridOpen = !state.gridOpen; render(); },
+    markQ: function () {
+      const s = state.ses;
+      if (!s) return;
+      const q = s.qs[s.cur];
+      s.marks[q.id] = !s.marks[q.id];
+      saveSession();
+      render();
+    },
+    finish: function () {
+      const s = state.ses;
+      if (!s) return;
+      const left = s.qs.length - answeredCount(s);
+      if (s.mode === 'mock' && left && !window.confirm('ยังไม่ได้ตอบ ' + left + ' ข้อ ต้องการส่งข้อสอบเลยไหม?')) return;
+      finishSession(false);
+    },
+    discard: function () {
+      if (!window.confirm('ทิ้งข้อสอบชุดนี้โดยไม่บันทึกผล?')) return;
+      endSession();
+      render();
+    },
+    speakQ: function () {
+      const s = state.ses;
+      if (!s) return;
+      const q = s.qs[s.cur];
+      let t = 'คำถาม. ' + q.question;
+      KEYS.forEach(function (k, i) { if (q[k]) t += NL + 'ข้อ ' + LETTERS[i] + '. ' + q[k]; });
+      speakText('q' + q.id, 'โจทย์', t);
+    },
+    speakExp: function (id) {
+      const q = findQ(id);
+      if (!q) return;
+      const ai = LETTERS.indexOf(String(q.answer));
+      let t = 'เฉลย ข้อ ' + q.answer + (ai > -1 && q[KEYS[ai]] ? '. ' + q[KEYS[ai]] : '');
+      if (q.explanation) t += NL + 'คำอธิบาย. ' + q.explanation;
+      speakText('exp' + id, 'เฉลย', t);
+    },
+    flagQ: function (id) {
+      const reason = window.prompt('ข้อนี้ผิดตรงไหน (ไม่ใส่ก็ได้)', '');
+      if (reason === null) return;
+      const fl = loadJSON(K_FLAGS, []);
+      fl.push({ id: id, reason: reason.trim() });
+      saveJSON(K_FLAGS, fl);
+      toast('⚠️ บันทึกการแจ้งแล้ว จะส่งให้ผู้ดูแลเมื่อออนไลน์');
+      syncAll().catch(function () { /* ส่งรอบหน้า */ });
+    },
+    resFilter: function (id) { if (state.res) { state.res.filter = id; render(); } },
+    openHist: function (id) {
+      const h = allHistory().find(function (x) { return String(x.id) === String(id); });
+      if (!h) return;
+      const qs = (Array.isArray(h.answers) ? h.answers : []).map(function (a) { return findQ(a.qid); })
+        .filter(function (q) { return q; }).map(snapQ);
+      if (!qs.length) { toast('ประวัติชุดนี้ไม่มีรายละเอียดรายข้อ'); return; }
+      state.res = { attempt: h, qs: qs, filter: 'all' };
+      goTo('result');
+    },
+
+    // ถาม AI / ออกข้อสอบ
+    aiTab: function (id) { state.aiTab = id; render(); },
+    aiGo: function (id) { state.aiTab = id; goTo('chat'); },
+    chatTopicGo: function (id) { cfg.chatTopic = id; saveCfg(); state.aiTab = 'chat'; goTo('chat'); },
+    genTopicGo: function (id) { cfg.genTopic = id; saveCfg(); state.aiTab = 'gen'; goTo('chat'); },
+    ansLen: function (id) { cfg.ansLen = id; saveCfg(); render(); },
+    genCountSet: function (id) { cfg.genCount = Number(id); saveCfg(); render(); },
+    genDiffSet: function (id) { cfg.genDiff = id; saveCfg(); render(); },
+    doGen: function () { genQuiz(); },
+    sendChat: function () { sendChat(); },
+    ask: function (id, el) { sendChat(el.getAttribute('data-text')); },
+    mic: function () { toggleMic(); },
+    newChat: function () { saveJSON(K_CHAT, { cid: '', msgs: [] }); state.chatDraft = ''; render(); },
+    speakAI: function (id) {
+      const m = chatState().msgs.find(function (x) { return String(x.t) === String(id); });
+      if (m) speakText('chat' + id, 'คำตอบ AI', plainText(m.text));
+    },
+    aiCheck: function () {
+      state.aiMsg = '⏳ กำลังตรวจรุ่น AI...';
+      render();
+      api('aiCheck', {}, 90000).then(function (r) {
+        state.aiMsg = '✅ ใช้รุ่น ' + r.used + NL + 'AI ตอบว่า: ' + r.reply + NL + 'รุ่นที่ใช้ได้: ' + (r.models || []).join(', ');
+      }).catch(function (err) {
+        state.aiMsg = '⚠️ ' + err.message;
+      }).then(function () { if (state.view === 'settings') render(); });
+    },
+    testVoice: function () { speakText('test', 'ทดสอบเสียง', 'สวัสดีครับ นี่คือเสียงที่ใช้อ่านเนื้อหาสำหรับเตรียมสอบ'); },
+
+    // เอกสาร
+    runDoc: function (id) { queueDoc(id, false); },
+    reExtract: function (id) { queueDoc(id, true); },
+    procAll: function () {
+      if (!aiInfo().hasKey) { toast('ยังไม่ได้ตั้งคีย์ Gemini'); return; }
+      const pend = libDocs().filter(function (d) { return d.status !== 'ประมวลผลแล้ว' && !state.busy[d.id]; });
+      if (!pend.length) { toast('ไม่มีเอกสารที่ค้างประมวลผล'); return; }
+      pend.forEach(function (d) { queueDoc(d.id, false); });
+    },
+    scanFolder: function (id, el) {
+      if (!navigator.onLine) { toast('ต้องต่ออินเทอร์เน็ต'); return; }
+      el.disabled = true;
+      toast('🔍 กำลังหาไฟล์ใหม่ใน Drive...');
+      api('scanFolder', {}, 120000).then(function (r) {
+        toast(r.added ? '✅ พบไฟล์ใหม่ ' + r.added + ' ไฟล์' + (r.noTopic ? ' (ยังไม่ระบุหัวข้อ ' + r.noTopic + ')' : '') : 'ไม่พบไฟล์ใหม่');
+        return refresh(true);
+      }).catch(function (err) {
+        toast('⚠️ ' + err.message);
+      }).then(function () { el.disabled = false; });
+    },
+    openFolder: function () { if (aiInfo().folderUrl) window.open(aiInfo().folderUrl, '_blank'); },
+    openDoc: function (id) { const d = docById(id); if (d && d.open_url) window.open(d.open_url, '_blank'); },
+
+    // ตั้งค่า
+    clearHistory: function () {
+      if (!window.confirm('ล้างประวัติและสถิติการสอบทั้งหมด (ทั้งในเครื่องและใน Google Sheet)?')) return;
+      api('clearHistory').then(function () {
+        saveJSON(K_LOCAL, []);
+        toast('ล้างประวัติแล้ว ✅');
+        return refresh(true);
+      }).catch(function (err) { toast('⚠️ ' + err.message); });
+    },
+    clearData: function () {
+      if (!window.confirm('ล้างข้อมูลที่เก็บในเครื่อง? (ต้องต่ออินเทอร์เน็ตเพื่อโหลดใหม่)')) return;
+      data = null;
+      try { localStorage.removeItem(K_DATA); } catch (e) { /* ไม่เป็นไร */ }
+      render();
+    },
+    resetAll: function () {
+      if (!window.confirm('ลบลิงก์ PIN และข้อมูลในเครื่อง? (ผลสอบที่ยังไม่ได้ส่งจะยังเก็บไว้)')) return;
+      stopAll();
+      endSession();
+      [K_CFG, K_DATA, K_CHAT].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) { /* ไม่เป็นไร */ } });
+      cfg = Object.assign({}, DEFAULT_CFG);
+      data = null;
+      state.res = null;
+      state.view = 'home';
+      render();
+    },
+    install: function () {
+      const ev = state.installEvt;
+      if (!ev) return;
+      ev.prompt();
+      ev.userChoice.then(function () { state.installEvt = null; render(); });
+    },
+    hideInstall: function () {
+      try { localStorage.setItem(K_HIDE, '1'); } catch (e) { /* ไม่เป็นไร */ }
+      render();
+    }
+  };
+
+  /* =========== ผูกเหตุการณ์ =========== */
+  document.addEventListener('click', function (ev) {
+    const el = ev.target && ev.target.closest ? ev.target.closest('[data-act]') : null;
+    if (!el || el.disabled) return;
+    const fn = ACTIONS[el.getAttribute('data-act')];
+    if (!fn) return;
+    try { fn(el.getAttribute('data-id'), el); }
+    catch (e) { toast('เกิดข้อผิดพลาด: ' + e.message); if (window.console) console.error(e); }
+  });
+
+  document.addEventListener('change', function (ev) {
+    const el = ev.target;
+    const key = el && el.getAttribute ? el.getAttribute('data-change') : null;
+    if (!key) return;
+    const val = el.type === 'checkbox' ? el.checked : el.value;
+    const id = el.getAttribute('data-id');
+    function num(v, lo, hi) { return Math.max(lo, Math.min(hi, parseInt(v, 10) || lo)); }
+    switch (key) {
+      case 'ann': cfg.annId = val; cfg.exTopics = []; saveCfg(); render(); break;
+      case 'chatTopic': cfg.chatTopic = val; saveCfg(); render(); break;
+      case 'genTopic': cfg.genTopic = val; saveCfg(); render(); break;
+      case 'listenTopic': state.listenTopic = val; render(); break;
+      case 'voice': cfg.voice = val; saveCfg(); restartChunk(); break;
+      case 'allVoices': cfg.allVoices = val; saveCfg(); render(); break;
+      case 'aiGeneral': cfg.aiGeneral = val; saveCfg(); break;
+      case 'autoSpeak': cfg.autoSpeak = val; saveCfg(); break;
+      case 'qaPause': cfg.qaPause = Number(val) || 5; saveCfg(); break;
+      case 'theme': cfg.theme = val; saveCfg(); render(); break;
+      case 'font': cfg.font = val; saveCfg(); render(); break;
+      case 'exCount': cfg.exCount = num(val, 1, 300); saveCfg(); render(); break;
+      case 'exMin': cfg.exMin = num(val, 1, 300); saveCfg(); render(); break;
+      case 'exSmart': cfg.exSmart = val; saveCfg(); break;
+      case 'sumPoints': cfg.sumPoints = Number(val) || 12; saveCfg(); render(); break;
+      case 'sumDetail': cfg.sumDetail = val; saveCfg(); render(); break;
+      case 'docPoints': { const d = docById(id); if (d) { d.sum_points = Number(val); saveData(); } break; }
+      case 'docDetail': { const d = docById(id); if (d) { d.sum_detail = val; saveData(); } break; }
+      default: break;
+    }
+  });
+
+  document.addEventListener('input', function (ev) {
+    const el = ev.target;
+    const key = el && el.getAttribute ? el.getAttribute('data-input') : null;
+    if (!key) return;
+    if (key === 'rate') setRate(el.value);
+    else if (key === 'pitch') setPitch(el.value);
+    else if (key === 'chatDraft') state.chatDraft = el.value;
+    else if (key === 'docQ') {
+      state.docQ = el.value;
+      const box = byId('docList');
+      if (box) box.innerHTML = docListHtml();
+    }
+  });
+
+  document.addEventListener('keydown', function (ev) {
+    const el = ev.target;
+    if (el && el.id === 'chatIn' && ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) {
+      ev.preventDefault();
+      sendChat();
+    }
+  });
+
+  window.addEventListener('online', function () { state.online = true; renderHeader(); refresh(true); });
+  window.addEventListener('offline', function () { state.online = false; renderHeader(); });
+  window.addEventListener('beforeinstallprompt', function (ev) {
+    ev.preventDefault();
+    state.installEvt = ev;
+    if (state.view === 'home' && !isTyping()) render();
+  });
+  window.addEventListener('appinstalled', function () { state.installEvt = null; if (state.view === 'home') render(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !isReady()) return;
+    const age = Date.now() - new Date(data.savedAt || 0).getTime();
+    if (age > 10 * 60 * 1000) refresh(true);
+  });
+  if (hasTTS()) {
+    try {
+      window.speechSynthesis.onvoiceschanged = function () {
+        if ((state.view === 'listen' || state.view === 'settings') && !isTyping()) render();
+      };
+    } catch (e) { /* ไม่เป็นไร */ }
+  }
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { if (cfg.theme === 'auto') applyTheme(); });
+    } catch (e) { /* เบราว์เซอร์เก่า */ }
+  }
+
+  /* =========== เริ่มทำงาน =========== */
+  applyTheme();
+  makeAppleIcon();
+  render();
+  if (state.ses) startTimer();
+  if (isReady()) refresh(true);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () { /* ไม่มีไฟล์ sw.js ก็ใช้งานได้ปกติ */ });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (hadController) toast('มีแอปเวอร์ชันใหม่ ปิดแล้วเปิดแอปอีกครั้งเพื่อใช้ตัวล่าสุด');
+    });
+  }
+})();
+</script>
+</body>
+</html>
