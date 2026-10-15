@@ -78,6 +78,9 @@ body.has-mini main{padding-bottom:calc(var(--tab) + 100px + env(safe-area-inset-
 .badge.ok{background:#dcfce7;color:#166534}
 .badge.wait{background:#fef3c7;color:#92400e}
 .badge.bad{background:#fee2e2;color:#991b1b}
+.krow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+.krow .row{gap:6px;flex-wrap:wrap}
+.keybar{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top) + 60px);z-index:35;display:flex;gap:8px;align-items:center;background:#fef3c7;color:#78350f;border:1px solid #f59e0b;border-radius:12px;padding:8px 8px 8px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);font-size:.95rem}
 .slist{list-style:none;margin:10px 0 0;padding:0}
 .slist li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
 .slist li:last-child{border-bottom:0}
@@ -200,6 +203,7 @@ input[type=range]{flex:1;width:100%;min-width:0;height:34px;accent-color:var(--p
 <main id="main"></main>
 <div id="mini" hidden></div>
 <nav class="tabbar" id="tabbar" hidden></nav>
+<div id="keybar" class="keybar" hidden></div>
 <div id="toast"></div>
 
 <script>
@@ -214,7 +218,7 @@ window.addEventListener('error', function (e) {
 (function () {
   'use strict';
 
-  const APP_VERSION = '5.0.0';
+  const APP_VERSION = '5.1.0';
   const NL = String.fromCharCode(10);
   const K_CFG = 'tiw_cfg';
   const K_DATA = 'tiw_data';
@@ -239,7 +243,7 @@ window.addEventListener('error', function (e) {
     chatTopic: 'all', aiGeneral: false, ansLen: 'ปกติ', autoSpeak: 'voice', autoSend: true,
     genTopic: '', genCount: 10, genDiff: 'กลาง', sumPoints: 12, sumDetail: 'ปกติ' };
 
-  let toastTimer = null, examTimer = null, advTimer = null, rateTimer = null;
+  let toastTimer = null, examTimer = null, advTimer = null, rateTimer = null, keyBarTimer = null;
   let syncPromise = null, recog = null, wakeLock = null;
   let cfg = Object.assign({}, DEFAULT_CFG, loadJSON(K_CFG, {}));
   cfg.rate = clampRate(cfg.rate);
@@ -464,6 +468,8 @@ window.addEventListener('error', function (e) {
       throw new Error('เชื่อมต่อไม่ได้ ตรวจอินเทอร์เน็ต ลิงก์ Web App และการ Deploy แบบ "ทุกคน"');
     }).then(function (res) {
       clearTimeout(timer);
+      if (res && res.keys) applyKeys(res.keys);
+      if (res && res.ok && res.note) showKeyNote(res.note);
       if (!res || !res.ok) {
         const e = new Error((res && res.error) || 'เกิดข้อผิดพลาด');
         e.code = res && res.code;
@@ -471,6 +477,45 @@ window.addEventListener('error', function (e) {
       }
       return res.data;
     });
+  }
+
+  function applyKeys(keys) {
+    if (!data) return;
+    data.ai = data.ai || {};
+    data.ai.keys = keys;
+    data.ai.keyCount = keys.length;
+    data.ai.hasKey = keys.length > 0;
+    saveData();
+  }
+
+  function showKeyNote(text) {
+    const b = byId('keybar');
+    if (!b) return;
+    b.innerHTML = '<span class="grow">' + esc(text) + '</span><button class="icon-btn sm" data-act="dismissKey" aria-label="ปิด">✕</button>';
+    b.hidden = false;
+    clearTimeout(keyBarTimer);
+    keyBarTimer = setTimeout(function () { b.hidden = true; }, 20000);
+  }
+
+  function keysHtml() {
+    const ks = aiInfo().keys || [];
+    if (!ks.length) return '<div class="banner">⚠️ ยังไม่มีคีย์ ใส่คีย์แรกด้านล่างเพื่อเปิดใช้ AI</div>';
+    let active = -1;
+    ks.forEach(function (k, i) { if (active < 0 && k.status === 'ok') active = i; });
+    return ks.map(function (k, i) {
+      let badge;
+      if (k.status === 'bad') badge = '<span class="badge bad">ใช้ไม่ได้</span>';
+      else if (k.status === 'quota') badge = '<span class="badge wait">โควตาหมด พักอยู่</span>';
+      else if (i === active) badge = '<span class="badge ok">กำลังใช้</span>';
+      else badge = '<span class="badge">สำรอง</span>';
+      const id = esc(k.id);
+      return '<div class="krow"><div class="grow"><b>' + (i + 1) + '. ' + esc(k.name) + '</b> <span class="small muted">••••' + esc(k.tail) + '</span><div>' + badge + '</div></div>' +
+        '<div class="row">' +
+        (i > 0 ? '<button class="icon-btn sm" data-act="keyMove" data-id="' + id + '" data-dir="-1" aria-label="เลื่อนขึ้น">▲</button>' : '') +
+        (i < ks.length - 1 ? '<button class="icon-btn sm" data-act="keyMove" data-id="' + id + '" data-dir="1" aria-label="เลื่อนลง">▼</button>' : '') +
+        '<button class="btn sm" data-act="keyCheck" data-id="' + id + '">ตรวจ</button>' +
+        '<button class="btn sm danger" data-act="keyDel" data-id="' + id + '">ลบ</button></div></div>';
+    }).join('');
   }
 
   function sendFlags() {
@@ -1601,7 +1646,7 @@ window.addEventListener('error', function (e) {
   function viewChat() {
     let h = '<div class="seg">' + segBtn('aiTab', 'chat', '💬 ถาม-ตอบ', state.aiTab) + segBtn('aiTab', 'gen', '🧠 AI ออกข้อสอบ', state.aiTab) + '</div>';
     if (!aiInfo().hasKey) {
-      return h + '<section class="card"><div class="banner">⚠️ ยังไม่ได้ตั้งคีย์ Gemini</div><p class="muted">ไปที่ Google Sheet เมนู <b>📘 ติวช่าง > 3) ตั้งคีย์ Gemini (AI)</b> แล้วกด ⟳ ในแอป</p></section>';
+      return h + '<section class="card"><div class="banner">⚠️ ยังไม่ได้ตั้งคีย์ Gemini</div><p class="muted">ไปที่ <b>⚙️ ตั้งค่า > คีย์ Gemini</b> แล้วเพิ่มคีย์ (ใส่ได้หลายคีย์)</p></section>';
     }
     return h + (state.aiTab === 'gen' ? viewGen() : viewChatBox());
   }
@@ -1676,8 +1721,20 @@ window.addEventListener('error', function (e) {
       selectField('เวลาคิดก่อนเฉลย (โหมดฟังถาม-ตอบ)', 'qaPause', [['3', '3 วินาที'], ['5', '5 วินาที'], ['10', '10 วินาที'], ['15', '15 วินาที']], String(cfg.qaPause)) +
       '<button class="btn" data-act="testVoice">▶ ทดสอบเสียง</button>' +
       '<p class="small muted">💡 เสียงไทยที่ชัดที่สุดบน iPad: การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียงแบบ "ปรับปรุง" หรือ "พรีเมียม" จากนั้นเลือก "ตามการตั้งค่าของ iPad" หรือเลือกชื่อเสียงนั้นด้านบน</p></section>';
-    h += '<section class="card"><h2>🤖 AI</h2><p class="muted">คีย์ Gemini: <b>' + (ai.hasKey ? 'ตั้งแล้ว ✅' : 'ยังไม่ตั้ง ❌') + '</b>' + (ai.model ? ' · รุ่นล่าสุดที่ใช้: ' + esc(ai.model) : '') + '</p>' +
-      '<button class="btn" data-act="aiCheck">🧪 ตรวจรุ่น AI ที่ใช้ได้</button>' + (state.aiMsg ? '<div class="msg">' + br(state.aiMsg) + '</div>' : '') + '</section>';
+    const nk = (ai.keys || []).length;
+    h += '<section class="card"><h2>🤖 AI · คีย์ Gemini</h2>' +
+      '<p class="muted small">ใช้คีย์ตามลำดับ เริ่มจากคีย์แรก เมื่อโควตาหมดจะสลับไปคีย์ถัดไปอัตโนมัติ และแจ้งเตือนในแอป' + (ai.model ? ' · รุ่นล่าสุดที่ใช้: ' + esc(ai.model) : '') + '</p>' +
+      keysHtml() +
+      (nk >= 5 ? '<p class="small muted">ใส่ครบ 5 คีย์แล้ว ลบคีย์เก่าก่อนจึงจะเพิ่มได้</p>' :
+        '<h3 style="margin:16px 0 0">➕ เพิ่มคีย์</h3>' +
+        '<label class="field"><span>ชื่อเรียก (เช่น เมลหลัก, เมลสำรอง)</span><input id="kName" type="text" maxlength="30" autocomplete="off"></label>' +
+        '<label class="field"><span>คีย์ API จาก aistudio.google.com</span><input id="kKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></label>' +
+        '<label class="field"><span>PIN ยืนยัน</span><input id="kPin" type="password" inputmode="numeric" autocomplete="off"></label>' +
+        '<div id="kMsg" class="msg" role="status"></div>' +
+        '<button class="btn primary" data-act="keyAdd">➕ เพิ่มคีย์</button>') +
+      '<div class="mt"><button class="btn" data-act="aiCheck">🧪 ตรวจทุกคีย์</button></div>' +
+      (state.aiMsg ? '<div class="msg">' + br(state.aiMsg) + '</div>' : '') +
+      '<p class="small muted">💡 โควตาฟรีนับต่อโปรเจกต์ Google ไม่ใช่ต่อคีย์ คีย์ที่สร้างจากเมลเดียวกัน (หรือโปรเจกต์เดียวกัน) โควตาจะหมดพร้อมกัน ควรสร้างจากคนละเมล</p></section>';
     h += '<section class="card"><h2>🔗 การเชื่อมต่อ</h2>' + connFields() + '<button class="btn primary" data-act="connect">ทดสอบและบันทึก</button></section>';
     h += '<section class="card"><h2>🎨 การแสดงผล</h2>' + selectField('ธีม', 'theme', [['auto', 'ตามระบบเครื่อง'], ['light', 'สว่าง'], ['dark', 'กลางคืน']], cfg.theme) +
       selectField('ขนาดตัวอักษร', 'font', [['normal', 'ปกติ'], ['large', 'ใหญ่'], ['xlarge', 'ใหญ่มาก']], cfg.font) + '</section>';
@@ -1911,14 +1968,67 @@ window.addEventListener('error', function (e) {
       if (m) speakText('chat' + id, 'คำตอบ AI', plainText(m.text));
     },
     aiCheck: function () {
-      state.aiMsg = '⏳ กำลังตรวจรุ่น AI...';
+      state.aiMsg = '⏳ กำลังตรวจทุกคีย์ (อาจใช้เวลาสักครู่)...';
       render();
-      api('aiCheck', {}, 90000).then(function (r) {
-        state.aiMsg = '✅ ใช้รุ่น ' + r.used + NL + 'AI ตอบว่า: ' + r.reply + NL + 'รุ่นที่ใช้ได้: ' + (r.models || []).join(', ');
+      api('aiCheck', {}, 120000).then(function (r) {
+        state.aiMsg = (r.keys || []).map(function (k, i) {
+          return (i + 1) + '. ' + k.name + ' (••••' + k.tail + '): ' + (k.ok ? '✅ ใช้ได้ · รุ่น ' + k.model : '❌ ' + k.error);
+        }).join(NL);
       }).catch(function (err) {
         state.aiMsg = '⚠️ ' + err.message;
       }).then(function () { if (state.view === 'settings') render(); });
     },
+    keyAdd: function (id, el) {
+      const msg = byId('kMsg');
+      function fail(t) { if (msg) { msg.textContent = '❌ ' + t; msg.className = 'msg bad'; } }
+      const name = byId('kName').value.trim();
+      const key = byId('kKey').value.trim();
+      const pin = byId('kPin').value.trim();
+      if (key.length < 20 || /\s/.test(key)) { fail('คีย์ไม่ถูกต้อง ลองคัดลอกใหม่อีกครั้ง'); return; }
+      if (pin.length < 4) { fail('ใส่ PIN เพื่อยืนยัน'); return; }
+      el.disabled = true;
+      el.textContent = 'กำลังตรวจคีย์...';
+      api('keyAdd', { name: name, key: key, confirmPin: pin }, 60000).then(function (r) {
+        applyKeys(r.keys);
+        toast('✅ เพิ่มคีย์แล้ว');
+        render();
+      }).catch(function (err) {
+        fail(err.message);
+        el.disabled = false;
+        el.textContent = '➕ เพิ่มคีย์';
+      });
+    },
+    keyDel: function (id) {
+      const k = (aiInfo().keys || []).find(function (x) { return x.id === id; });
+      if (!k || !window.confirm('ลบคีย์ "' + k.name + '" ?')) return;
+      const pin = window.prompt('ใส่ PIN เพื่อยืนยันการลบคีย์', '');
+      if (pin === null) return;
+      api('keyDelete', { id: id, confirmPin: pin.trim() }).then(function (r) {
+        applyKeys(r.keys);
+        toast('ลบคีย์แล้ว');
+        render();
+      }).catch(function (err) { toast('⚠️ ' + err.message); });
+    },
+    keyMove: function (id, el) {
+      api('keyMove', { id: id, dir: Number(el.getAttribute('data-dir')) }).then(function (r) {
+        applyKeys(r.keys);
+        render();
+      }).catch(function (err) { toast('⚠️ ' + err.message); });
+    },
+    keyCheck: function (id, el) {
+      el.disabled = true;
+      el.textContent = '...';
+      api('keyCheck', { id: id }, 60000).then(function (r) {
+        applyKeys(r.keys);
+        toast(r.result.ok ? '✅ คีย์ "' + r.result.name + '" ใช้ได้ (รุ่น ' + r.result.model + ')' : '❌ คีย์ "' + r.result.name + '": ' + r.result.error);
+        render();
+      }).catch(function (err) {
+        toast('⚠️ ' + err.message);
+        el.disabled = false;
+        el.textContent = 'ตรวจ';
+      });
+    },
+    dismissKey: function () { const b = byId('keybar'); if (b) b.hidden = true; },
     testVoice: function () { speakText('test', 'ทดสอบเสียง', 'สวัสดีครับ นี่คือเสียงที่ใช้อ่านเนื้อหาสำหรับเตรียมสอบ'); },
 
     // เอกสาร
