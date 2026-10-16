@@ -80,6 +80,7 @@ body.has-mini main{padding-bottom:calc(var(--tab) + 100px + env(safe-area-inset-
 .badge.bad{background:#fee2e2;color:#991b1b}
 .krow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
 .krow .row{gap:6px;flex-wrap:wrap}
+.desk-only{display:none}
 .keybar{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top) + 60px);z-index:35;display:flex;gap:8px;align-items:center;background:#fef3c7;color:#78350f;border:1px solid #f59e0b;border-radius:12px;padding:8px 8px 8px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);font-size:.95rem}
 .slist{list-style:none;margin:10px 0 0;padding:0}
 .slist li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -188,7 +189,10 @@ input[type=range]{flex:1;width:100%;min-width:0;height:34px;accent-color:var(--p
 #toast{position:fixed;left:50%;bottom:calc(var(--tab) + 100px);transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;max-width:90vw;text-align:center;font-size:.92rem}
 #toast.show{opacity:1}
 @media (max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.mode-grid{grid-template-columns:1fr}}
+@media (hover:hover){.btn:hover,.chip:hover,.tcard:hover,.opt:hover,.qitem:hover,.hrow:hover,.mode:hover{filter:brightness(.96)}.icon-btn:hover,.tab:hover,.play:hover{filter:brightness(.92)}}
 @media (min-width:900px){
+  .desk-only{display:block}
+  .keybar{left:calc(var(--side) + 16px);max-width:760px}
   body.has-tabs{padding-left:var(--side)}
   .tabbar{top:0;bottom:0;right:auto;width:var(--side);flex-direction:column;justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 12px);border-top:0;border-right:1px solid var(--line)}
   .tab{flex:none;height:80px}
@@ -218,7 +222,7 @@ window.addEventListener('error', function (e) {
 (function () {
   'use strict';
 
-  const APP_VERSION = '5.1.0';
+  const APP_VERSION = '5.2.0';
   const NL = String.fromCharCode(10);
   const K_CFG = 'tiw_cfg';
   const K_DATA = 'tiw_data';
@@ -258,7 +262,7 @@ window.addEventListener('error', function (e) {
     genBusy: false, genStart: 0, genMsg: '', genResult: null, aiMsg: '',
     busy: {}, queue: [], qRunning: false, docQ: '', docTopic: 'all', openDoc: '' };
   if (state.ses && (!Array.isArray(state.ses.qs) || !state.ses.qs.length)) state.ses = null;
-  const player = { queue: [], key: '', idx: 0, chunkIdx: 0, playing: false, done: false, token: 0, timer: null };
+  const player = { queue: [], key: '', idx: 0, chunkIdx: 0, playing: false, done: false, token: 0, timer: null, wd: null, utt: null, errs: 0, fast: 0 };
   const hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
 
   /* =========== ตัวช่วยทั่วไป =========== */
@@ -615,23 +619,115 @@ window.addEventListener('error', function (e) {
     else if (u.indexOf('enhanced') > -1) q = ' ✨ ปรับปรุง';
     return v.name + q + (cfg.allVoices ? ' [' + v.lang + ']' : '') + (v.localService === false ? ' (ออนไลน์)' : '');
   }
+  function platformInfo() {
+    const ua = navigator.userAgent || '';
+    let os = 'other';
+    if (isIOS()) os = 'ios';
+    else if (ua.indexOf('Windows') > -1) os = 'windows';
+    else if (ua.indexOf('Macintosh') > -1) os = 'mac';
+    else if (ua.indexOf('CrOS') > -1) os = 'chromeos';
+    else if (ua.indexOf('Android') > -1) os = 'android';
+    else if (ua.indexOf('Linux') > -1) os = 'linux';
+    let browser = 'other';
+    if (ua.indexOf('Edg/') > -1) browser = 'edge';
+    else if (ua.indexOf('Firefox') > -1) browser = 'firefox';
+    else if (ua.indexOf('Chrome') > -1 || ua.indexOf('CriOS') > -1) browser = 'chrome';
+    else if (ua.indexOf('Safari') > -1) browser = 'safari';
+    return { os: os, browser: browser };
+  }
+  function voiceScore(v) {
+    const u = (String(v.voiceURI || '') + ' ' + String(v.name || '')).toLowerCase();
+    let sc = 0;
+    if (/natural|premwadee|niwat|achara/.test(u)) sc += 50;
+    if (u.indexOf('premium') > -1) sc += 40;
+    if (u.indexOf('enhanced') > -1) sc += 30;
+    if (/pattara|kanya|narisa|google/.test(u)) sc += 10;
+    if (v.localService !== false) sc += 5;
+    return sc;
+  }
+  function bestThaiVoice() {
+    const vs = thaiVoices().slice().sort(function (a, b) { return voiceScore(b) - voiceScore(a); });
+    return vs[0] || null;
+  }
   function pickVoice() {
-    if (!cfg.voice) return null;
-    return allVoicesList().find(function (v) { return v.voiceURI === cfg.voice || v.name === cfg.voice; }) || null;
+    if (cfg.voice) {
+      const f = allVoicesList().find(function (v) { return v.voiceURI === cfg.voice || v.name === cfg.voice; });
+      if (f) return f;
+    }
+    // iPad/iPhone ใช้เสียงที่ตั้งไว้ในเครื่อง ส่วนคอมพิวเตอร์เลือกเสียงไทยที่ดีที่สุดให้เอง
+    return isIOS() ? null : bestThaiVoice();
+  }
+  function voiceHelpHtml() {
+    const p = platformInfo();
+    let t;
+    if (p.os === 'windows') {
+      t = p.browser === 'edge'
+        ? 'Edge มีเสียงไทยออนไลน์ในตัว (เช่น Premwadee, Niwat) ให้ลองตรวจว่าต่ออินเทอร์เน็ตอยู่ แล้วโหลดหน้านี้ใหม่ หรือเพิ่มเสียงไทยใน Windows: การตั้งค่า > เวลาและภาษา > เสียงพูด > เพิ่มเสียง > ไทย'
+        : 'Chrome บน Windows ใช้เสียงที่ติดตั้งใน Windows เท่านั้น ทางที่ง่ายที่สุดคือเปิดแอปนี้ด้วย Microsoft Edge (มีเสียงไทยออนไลน์ชัดๆ ในตัว) หรือเพิ่มเสียงไทยใน Windows: การตั้งค่า > เวลาและภาษา > เสียงพูด > เพิ่มเสียง > ไทย แล้วเปิดเบราว์เซอร์ใหม่';
+    } else if (p.os === 'mac') {
+      t = 'Mac: การตั้งค่าระบบ > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียงของระบบ > จัดการเสียง > ไทย (Kanya หรือ Narisa) แล้วเปิดเบราว์เซอร์ใหม่ หรือลองเปิดด้วย Microsoft Edge';
+    } else if (p.os === 'ios') {
+      t = 'iPad: การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียง จากนั้นปิดแล้วเปิดแอปใหม่';
+    } else {
+      t = 'ลองเปิดแอปนี้ด้วย Microsoft Edge หรือ Chrome แล้วติดตั้งเสียงภาษาไทยในระบบปฏิบัติการของเครื่อง';
+    }
+    return '<div class="banner small"><div>⚠️ ยังไม่พบเสียงภาษาไทยในเครื่องนี้ จึงอ่านออกเสียงไทยไม่ได้<br>' + esc(t) + '</div></div>';
+  }
+  function voiceDiagHtml() {
+    const p = platformInfo();
+    const all = allVoicesList();
+    const th = thaiVoices();
+    const cur = pickVoice();
+    return '<details class="small muted"><summary>🔍 รายละเอียดเสียงในเครื่องนี้</summary><div>ระบบ: ' + esc(p.os) + ' · เบราว์เซอร์: ' + esc(p.browser) +
+      '<br>เสียงทั้งหมด ' + all.length + ' เสียง · เสียงไทย ' + th.length + ' เสียง' +
+      (th.length ? ': ' + th.map(function (v) { return esc(v.name) + (v.localService === false ? ' (ออนไลน์)' : ''); }).join(', ') : '') +
+      '<br>เสียงที่ใช้อยู่: ' + (cur ? esc(cur.name) : (isIOS() ? 'ตามค่าเริ่มต้นของ iPad' : 'ไม่มี')) + '</div></details>';
+  }
+  function thaiWords(str) {
+    try {
+      if (window.Intl && Intl.Segmenter) {
+        return Array.from(new Intl.Segmenter('th', { granularity: 'word' }).segment(str), function (x) { return x.segment; });
+      }
+    } catch (e) { /* ใช้วิธีหั่นตามความยาวแทน */ }
+    return null;
+  }
+  function splitLong(w, max) {
+    const out = [];
+    const words = thaiWords(w);
+    if (words) {
+      let cur = '';
+      words.forEach(function (x) {
+        while (x.length > max) {
+          if (cur) { out.push(cur); cur = ''; }
+          out.push(x.slice(0, max));
+          x = x.slice(max);
+        }
+        if (cur && (cur.length + x.length) > max) { out.push(cur); cur = x; }
+        else cur += x;
+      });
+      if (cur) out.push(cur);
+    } else {
+      while (w.length > max) { out.push(w.slice(0, max)); w = w.slice(max); }
+      if (w) out.push(w);
+    }
+    return out;
   }
   function chunkText(text) {
+    const soft = isIOS() ? 140 : 100;
+    const hard = isIOS() ? 200 : 120;
     const out = [];
     String(text || '').split(NL).forEach(function (line) {
       let cur = '';
       line.split(' ').forEach(function (w) {
         if (!w) return;
-        while (w.length > 200) {
+        if (w.length > hard) {
           if (cur) { out.push(cur); cur = ''; }
-          out.push(w.slice(0, 200));
-          w = w.slice(200);
+          const parts = splitLong(w, hard);
+          for (let i = 0; i < parts.length - 1; i++) out.push(parts[i]);
+          w = parts[parts.length - 1] || '';
         }
         if (!w) return;
-        if (cur && (cur.length + w.length + 1) > 140) { out.push(cur); cur = w; }
+        if (cur && (cur.length + w.length + 1) > soft) { out.push(cur); cur = w; }
         else cur = cur ? cur + ' ' + w : w;
       });
       if (cur) out.push(cur);
@@ -679,17 +775,47 @@ window.addEventListener('error', function (e) {
     player.key = 'one|' + key;
     playItem(0);
   }
+  function ttsFail(msg) {
+    player.playing = false;
+    player.token++;
+    clearTimeout(player.timer);
+    clearTimeout(player.wd);
+    try { window.speechSynthesis.cancel(); } catch (e) { /* ไม่เป็นไร */ }
+    keepAwake(false);
+    updatePlayerUI();
+    toast(msg);
+    if ((state.view === 'listen' || state.view === 'settings') && !isTyping()) render();
+  }
+  function waitVoices(cb) {
+    const ss = window.speechSynthesis;
+    if (ss.getVoices().length) { cb(); return; }
+    let done = false;
+    function go() { if (done) return; done = true; cb(); }
+    try { ss.addEventListener('voiceschanged', go, { once: true }); } catch (e) { /* ไม่เป็นไร */ }
+    setTimeout(go, 1500);
+  }
   function startSpeak(tk) {
     if (!hasTTS()) { toast('เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน'); player.playing = false; updatePlayerUI(); return; }
     clearTimeout(player.timer);
+    player.errs = 0;
+    player.fast = 0;
     const ss = window.speechSynthesis;
-    if (ss.speaking || ss.pending) {
-      ss.cancel();
-      player.timer = setTimeout(function () { speakChunk(tk); }, 150);
-    } else speakChunk(tk);
+    waitVoices(function () {
+      if (tk !== player.token || !player.playing) return;
+      if (!isIOS() && allVoicesList().length && !thaiVoices().length && !cfg.voice) {
+        ttsFail('เครื่องนี้ยังไม่มีเสียงภาษาไทย ดูวิธีเพิ่มเสียงที่ ⚙️ ตั้งค่า > เสียงอ่าน');
+        return;
+      }
+      try { ss.resume(); } catch (e) { /* ไม่เป็นไร */ }
+      if (ss.speaking || ss.pending) {
+        ss.cancel();
+        player.timer = setTimeout(function () { speakChunk(tk); }, 150);
+      } else speakChunk(tk);
+    });
   }
   function speakChunk(tk) {
     if (tk !== player.token || !player.playing) return;
+    clearTimeout(player.wd);
     const item = player.queue[player.idx];
     if (!item) { finishAll(); return; }
     if (player.chunkIdx >= item.chunks.length) {
@@ -706,19 +832,49 @@ window.addEventListener('error', function (e) {
       player.timer = setTimeout(function () { if (tk === player.token) { player.chunkIdx++; speakChunk(tk); } }, c);
       return;
     }
+    const ss = window.speechSynthesis;
     const u = new SpeechSynthesisUtterance(c);
     const v = pickVoice();
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'th-TH';
     u.rate = cfg.rate;
     u.pitch = cfg.pitch;
-    u.onend = function () { if (tk === player.token) { player.chunkIdx++; speakChunk(tk); } };
-    u.onerror = function (ev) {
+    const at = player.chunkIdx;
+    let startedAt = Date.now();
+    u.onstart = function () { startedAt = Date.now(); };
+    u.onend = function () {
       if (tk !== player.token) return;
-      if (ev && (ev.error === 'interrupted' || ev.error === 'canceled')) return;
+      clearTimeout(player.wd);
+      // เสียงที่อ่านไม่ได้จริงมักจบทันทีโดยไม่มีเสียง ถ้าเกิดซ้ำหลายครั้งให้หยุดและบอกผู้ใช้
+      if (!isIOS() && c.length >= 10 && Date.now() - startedAt < 120) player.fast++; else player.fast = 0;
+      if (player.fast >= 3) { ttsFail('เสียงอ่านไม่ทำงานบนเครื่องนี้ ลองเลือกเสียงอื่นที่ ⚙️ ตั้งค่า > เสียงอ่าน หรือเปิดด้วย Microsoft Edge'); return; }
+      player.errs = 0;
       player.chunkIdx++;
       speakChunk(tk);
     };
-    window.speechSynthesis.speak(u);
+    u.onerror = function (ev) {
+      if (tk !== player.token) return;
+      const er = ev && ev.error;
+      if (er === 'interrupted' || er === 'canceled') return;
+      clearTimeout(player.wd);
+      if (er === 'not-allowed') { ttsFail('เบราว์เซอร์ยังไม่อนุญาตให้เล่นเสียง ลองกดปุ่ม ▶ อีกครั้ง'); return; }
+      if (er === 'language-unavailable' || er === 'voice-unavailable' || er === 'synthesis-unavailable') {
+        ttsFail('เครื่องนี้ไม่มีเสียงภาษาไทยที่ใช้ได้ ดูวิธีเพิ่มเสียงที่ ⚙️ ตั้งค่า > เสียงอ่าน');
+        return;
+      }
+      player.errs++;
+      if (player.errs >= 3) { ttsFail('อ่านออกเสียงไม่สำเร็จ (' + (er || 'ผิดพลาด') + ') ลองเลือกเสียงอื่นที่ ⚙️ ตั้งค่า'); return; }
+      player.chunkIdx++;
+      speakChunk(tk);
+    };
+    player.utt = u; // เก็บอ้างอิงไว้ ไม่งั้น Chrome อาจเก็บกวาดทิ้งกลางคันจนไม่เล่นต่อ
+    // กันค้าง: ถ้าท่อนนี้ไม่จบภายในเวลาที่ควรจะจบ ให้ข้ามไปท่อนถัดไป
+    player.wd = setTimeout(function () {
+      if (tk !== player.token || player.chunkIdx !== at) return;
+      try { ss.cancel(); } catch (e) { /* ไม่เป็นไร */ }
+      player.chunkIdx++;
+      player.timer = setTimeout(function () { speakChunk(tk); }, 120);
+    }, 8000 + (c.length * 350) / Math.max(0.5, cfg.rate));
+    ss.speak(u);
   }
   function playItem(i) {
     if (i < 0 || i >= player.queue.length) return;
@@ -742,6 +898,7 @@ window.addEventListener('error', function (e) {
     player.playing = false;
     player.token++;
     clearTimeout(player.timer);
+    clearTimeout(player.wd);
     try { window.speechSynthesis.cancel(); } catch (e) { /* ไม่เป็นไร */ }
     keepAwake(false);
     updatePlayerUI();
@@ -848,15 +1005,14 @@ window.addEventListener('error', function (e) {
 
   function voicePicker() {
     const vs = cfg.allVoices ? allVoicesList() : thaiVoices();
+    const ios = isIOS();
     let h = '<label class="field"><span>เสียงที่ใช้อ่าน</span><select data-change="voice">' +
-      '<option value="">📱 ตามการตั้งค่าของ iPad (เสียงไทยเริ่มต้นของเครื่อง)</option>' +
+      '<option value="">' + (ios ? '📱 ตามการตั้งค่าของ iPad (เสียงไทยเริ่มต้นของเครื่อง)' : '🖥️ เลือกเสียงไทยที่ดีที่สุดให้อัตโนมัติ') + '</option>' +
       vs.map(function (v) {
         return '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === cfg.voice || v.name === cfg.voice ? ' selected' : '') + '>' + esc(voiceLabel(v)) + '</option>';
       }).join('') + '</select></label>';
-    if (!thaiVoices().length) {
-      h += '<div class="banner small">⚠️ ยังไม่พบเสียงภาษาไทยในเครื่อง ไปที่ การตั้งค่า iPad > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียง จากนั้นปิดแล้วเปิดแอปใหม่</div>';
-    }
-    return h;
+    if (allVoicesList().length && !thaiVoices().length) h += voiceHelpHtml();
+    return h + voiceDiagHtml();
   }
 
   /* =========== ระบบข้อสอบ =========== */
@@ -1414,7 +1570,7 @@ window.addEventListener('error', function (e) {
       '<button class="icon-btn lg" data-act="pPrev" aria-label="ก่อนหน้า">⏮</button>' +
       '<button id="pPlay" class="play" data-act="pToggleSel" aria-label="เล่น/หยุด">' + (same && player.playing ? '⏸' : '▶') + '</button>' +
       '<button class="icon-btn lg" data-act="pNext" aria-label="ถัดไป">⏭</button>' +
-      '<button class="icon-btn lg" data-act="pStop" aria-label="หยุด">⏹</button></div>' + speedPanel(false) + '</div>' +
+      '<button class="icon-btn lg" data-act="pStop" aria-label="หยุด">⏹</button></div>' + speedPanel(false) + '<p class="small muted desk-only">⌨️ แป้นพิมพ์: Space = เล่น/หยุด · ← → = ข้อก่อนหน้า/ถัดไป</p></div>' +
       voicePicker() + '</section>';
     if (!items.length) {
       return h + (state.listenMode === 'qa' ? '<div class="empty">ยังไม่มีข้อสอบในหัวข้อนี้ ให้ AI ออกข้อสอบได้ที่ 💬 ถาม AI</div>'
@@ -1720,7 +1876,7 @@ window.addEventListener('error', function (e) {
       speedPanel(true) +
       selectField('เวลาคิดก่อนเฉลย (โหมดฟังถาม-ตอบ)', 'qaPause', [['3', '3 วินาที'], ['5', '5 วินาที'], ['10', '10 วินาที'], ['15', '15 วินาที']], String(cfg.qaPause)) +
       '<button class="btn" data-act="testVoice">▶ ทดสอบเสียง</button>' +
-      '<p class="small muted">💡 เสียงไทยที่ชัดที่สุดบน iPad: การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียงแบบ "ปรับปรุง" หรือ "พรีเมียม" จากนั้นเลือก "ตามการตั้งค่าของ iPad" หรือเลือกชื่อเสียงนั้นด้านบน</p></section>';
+      '<p class="small muted">💡 ' + (isIOS() ? 'เสียงไทยที่ชัดที่สุดบน iPad: การตั้งค่า > การช่วยการเข้าถึง > เนื้อหาที่อ่านออกเสียง > เสียง > ไทย แล้วดาวน์โหลดเสียงแบบ "ปรับปรุง" หรือ "พรีเมียม" จากนั้นเลือก "ตามการตั้งค่าของ iPad" หรือเลือกชื่อเสียงนั้นด้านบน' : 'บนคอมพิวเตอร์ เสียงไทยที่ชัดที่สุดคือ Microsoft Edge (มีเสียงออนไลน์ Premwadee / Niwat ในตัว) หรือ Mac ที่เพิ่มเสียง Kanya / Narisa ในระบบ') + '</p></section>';
     const nk = (ai.keys || []).length;
     h += '<section class="card"><h2>🤖 AI · คีย์ Gemini</h2>' +
       '<p class="muted small">ใช้คีย์ตามลำดับ เริ่มจากคีย์แรก เมื่อโควตาหมดจะสลับไปคีย์ถัดไปอัตโนมัติ และแจ้งเตือนในแอป' + (ai.model ? ' · รุ่นล่าสุดที่ใช้: ' + esc(ai.model) : '') + '</p>' +
@@ -2148,6 +2304,14 @@ window.addEventListener('error', function (e) {
 
   document.addEventListener('keydown', function (ev) {
     const el = ev.target;
+    if (state.view === 'listen' && player.queue.length && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      const tag = el && el.tagName ? el.tagName : '';
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && tag !== 'BUTTON') {
+        if (ev.key === ' ') { ev.preventDefault(); togglePlay(); return; }
+        if (ev.key === 'ArrowRight') { ev.preventDefault(); nextItem(); return; }
+        if (ev.key === 'ArrowLeft') { ev.preventDefault(); prevItem(); return; }
+      }
+    }
     if (el && el.id === 'chatIn' && ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) {
       ev.preventDefault();
       sendChat();
@@ -2168,11 +2332,19 @@ window.addEventListener('error', function (e) {
     if (age > 10 * 60 * 1000) refresh(true);
   });
   if (hasTTS()) {
-    try {
-      window.speechSynthesis.onvoiceschanged = function () {
-        if ((state.view === 'listen' || state.view === 'settings') && !isTyping()) render();
-      };
-    } catch (e) { /* ไม่เป็นไร */ }
+    let lastN = -1;
+    const refreshVoices = function () {
+      const n = allVoicesList().length;
+      if (n !== lastN) {
+        const first = lastN === -1;
+        lastN = n;
+        if (!first && (state.view === 'listen' || state.view === 'settings') && !isTyping()) render();
+      }
+    };
+    try { window.speechSynthesis.onvoiceschanged = refreshVoices; } catch (e) { /* ไม่เป็นไร */ }
+    refreshVoices();
+    // บางเบราว์เซอร์บนคอมพิวเตอร์โหลดรายชื่อเสียงช้าหรือไม่แจ้งเหตุการณ์ จึงเช็กซ้ำช่วงแรก
+    [400, 1200, 3000, 6000].forEach(function (ms) { setTimeout(refreshVoices, ms); });
   }
   if (window.matchMedia) {
     try {
